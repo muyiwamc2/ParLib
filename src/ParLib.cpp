@@ -12,14 +12,17 @@
 
 int main() {
 	std::cout << "!!!Hello World!!!" << std::endl; // prints !!!Hello World!!!
+	int val =177;
 	std::vector<int> one(1000);
 	std::vector<double> two(1000);
 	std::iota(one.begin(),one.end(), 1);
 	std::cout << "starting transform" << two.size() << std::endl;
 	parallel::transform(one.begin(), one.end(), two.begin(),
-			[](int k)->double {return 3.14159*static_cast<double>(k);});
+			[&](int k)->double {return 3.14159*static_cast<double>(k);});
 	std::for_each(one.begin(), one.end(), [](double k) {std::cout<< k<<std::endl;});
 	std::cout<< " The sum is:"<< parallel::accumulate(one.begin(),one.end(),0)<<std::endl;
+	std::cout<< " The sum is:"<< parallel::accumulate_if(one.begin(),one.end(),0,[](int k)->bool{return (k%10)==0 ;})<<std::endl;
+	std::cout<< "find number 177:"<<*(parallel::find(one.begin(),one.end(), val))<<std::endl;
 
 	return 0;
 }
