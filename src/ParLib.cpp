@@ -23,6 +23,7 @@ int main() {
 	std::cout<< " The sum is:"<< parallel::accumulate(one.begin(),one.end(),0)<<std::endl;
 	std::cout<< " The sum is:"<< parallel::accumulate_if(one.begin(),one.end(),0,[](int k)->bool{return (k%10)==0 ;})<<std::endl;
 	std::cout<< "find number 177:"<<*(parallel::find(one.begin(),one.end(), val))<<std::endl;
-
+	std::cout<< "what is the count:"<< parallel::count(one.begin(),one.end(),val)<<std::endl;
+	std::cout<< "the count if test:"<< parallel::count_if(one.begin(),one.end(),[](int k)->bool{return (k%10)==0;})<<std::endl;
 	return 0;
 }
