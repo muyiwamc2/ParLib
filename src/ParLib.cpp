@@ -64,7 +64,6 @@ BOOST_AUTO_TEST_CASE( accummulate_test1){
 
 	val= parallel::accumulate(one.begin(),one.end(),0);
 	BOOST_CHECK(val==500500);
-
 }
 
 BOOST_AUTO_TEST_CASE( accummulate_test2){
@@ -76,15 +75,166 @@ BOOST_AUTO_TEST_CASE( accummulate_test2){
 
 	val= parallel::accumulate(one.begin(),one.end(),0,[](int k, int j)->int{return k+ j;});
 	BOOST_CHECK(val==500500);
-
-
-	std::cout<< " The sum is:"<< parallel::accumulate_if(one.begin(),one.end(),0,[](int k)->bool{return (k%10)==0 ;})<<std::endl;
-	std::cout<< "find number 177:"<<*(parallel::find(one.begin(),one.end(), val))<<std::endl;
-	std::cout<< "what is the count:"<< parallel::count(one.begin(),one.end(),val)<<std::endl;
-	std::cout<< "the count if test:"<< parallel::count_if(one.begin(),one.end(),[](int k)->bool{return (k%10)==0;})<<std::endl;
-
 }
 BOOST_AUTO_TEST_SUITE_END()
+BOOST_AUTO_TEST_SUITE(Accumulate_If)
+BOOST_AUTO_TEST_CASE( accummulate_if_test1){
+	using namespace std;
+	int val;
+	vector<int> one(1000);
+	iota(one.begin(),one.end(), 1);
+	//function<void(int&)> op = [&](int &k)->void{ one[k-1]= k*30; };
+
+	val= parallel::accumulate_if(one.begin(),one.end(),0,[](int k)->bool{return (k%10)==0 ;});
+	BOOST_CHECK(val==50500);
+}
+
+BOOST_AUTO_TEST_CASE( accummulate_if_test2){
+	using namespace std;
+	int val;
+	vector<int> one(1000);
+	iota(one.begin(),one.end(), 1);
+	function<int(int,int)> op = [&](int i, int j)->int{ return i+j; };
+
+	val= parallel::accumulate_if(one.begin(),one.end(),0,[](int k)->bool{return (k%10)==0 ;},op);
+	BOOST_CHECK(val==50500);
+}
+BOOST_AUTO_TEST_SUITE_END()
+BOOST_AUTO_TEST_SUITE(Find)
+BOOST_AUTO_TEST_CASE( find_test1){
+	using namespace std;
+	int val= 177;
+	vector<int> one(1000);
+	iota(one.begin(),one.end(), 1);
+
+	auto val2= parallel::find(one.begin(),one.end(), val);
+	BOOST_CHECK(val== *val2);
+}
+BOOST_AUTO_TEST_CASE( find_if_test){
+	using namespace std;
+	int val=177;
+	vector<int> one(1000);
+	iota(one.begin(),one.end(), 1);
+	function <bool(int)> op =[](int i)->bool{ return i==177;};
+	auto val2= parallel::find_if(one.begin(),one.end(), op);
+	BOOST_CHECK(val== *val2);
+
+
+}
+
+BOOST_AUTO_TEST_CASE( find_if_not_test){
+	using namespace std;
+	int val=177;
+	vector<int> one(1000);
+	iota(one.begin(),one.end(), 1);
+	function <bool(int&)> op =[](int& i)->bool{ return i!=177;};
+	auto val2= parallel::find_if_not(one.begin(),one.end(), op);
+	BOOST_CHECK(val== *val2);
+	}
+BOOST_AUTO_TEST_SUITE_END()
+
+BOOST_AUTO_TEST_SUITE(Count)
+BOOST_AUTO_TEST_CASE( count_test){
+	using namespace std;
+	int val=177;
+	vector<int> one(1000);
+	iota(one.begin(),one.end(), 1);
+	one[256]=177;
+	one[258]=177;
+	auto val2= parallel::count(one.begin(),one.end(),val);
+
+	BOOST_CHECK(val2== 3);
+}
+
+BOOST_AUTO_TEST_CASE( count_if_test){
+	using namespace std;
+	vector<int> one(1000);
+	iota(one.begin(),one.end(), 1);
+	auto val2= parallel::count_if(one.begin(),one.end(),[](int k)->bool{return (k%10)==0;});
+	BOOST_CHECK(val2== 100);
+}
+BOOST_AUTO_TEST_SUITE_END()
+
+
+
+BOOST_AUTO_TEST_SUITE(SimpleLogical)
+BOOST_AUTO_TEST_CASE(all_of_test){
+	using namespace std;
+	vector<int> one(1000);
+	iota(one.begin(),one.end(), 10);
+	auto val= parallel::all_of(one.begin(),one.end(),[](int i)->bool{return ( i>9);});
+
+	BOOST_CHECK(val);
+}
+
+BOOST_AUTO_TEST_CASE(any_of_test){
+	using namespace std;
+	vector<int> one(1000);
+	iota(one.begin(),one.end(), 10);
+	auto val= parallel::any_of(one.begin(),one.end(),[](int &i)->bool{return ( i==177);});
+
+	BOOST_CHECK(val);
+}
+
+BOOST_AUTO_TEST_CASE(none_of_test){
+	using namespace std;
+	vector<int> one(1000);
+	iota(one.begin(),one.end(), 10);
+	auto val= parallel::none_of(one.begin(),one.end(),[](int &i)->bool{return ( i==2013);});
+
+	BOOST_CHECK(val);
+}
+
+
+BOOST_AUTO_TEST_SUITE_END()
+
+
+
+
+BOOST_AUTO_TEST_SUITE(Equal)
+BOOST_AUTO_TEST_CASE(equal_test1){
+	using namespace std;
+	vector<int> one(1000);
+	vector<int> two(1000);
+	iota(one.begin(),one.end(), 10);
+	iota(two.begin(),two.end(), 10);
+	auto val= parallel::equal(one.begin(),one.end(),two.begin());
+
+	BOOST_CHECK(val);
+}
+BOOST_AUTO_TEST_CASE(equal_test2){
+	using namespace std;
+	vector<int> one(1000);
+	vector<int> two(1000);
+	iota(one.begin(),one.end(), 10);
+	iota(two.begin(),two.end(), 10);
+	auto val= parallel::equal(one.begin(),one.end(),two.begin(),two.end());
+
+	BOOST_CHECK(val);
+}
+
+BOOST_AUTO_TEST_CASE(equal_test3){
+	using namespace std;
+	vector<int> one(1000);
+	vector<int> two(1000);
+	iota(one.begin(),one.end(), 10);
+	iota(two.begin(),two.end(), 10);
+	auto val= parallel::equal(one.begin(),one.end(),two.begin(),[](int a, int b)->bool{return a==b;});
+	BOOST_CHECK(val);
+}
+BOOST_AUTO_TEST_CASE(equal_test4){
+	using namespace std;
+	vector<int> one(1000);
+	vector<int> two(1000);
+	iota(one.begin(),one.end(), 10);
+	iota(two.begin(),two.end(), 10);
+	auto val= parallel::equal(one.begin(),one.end(),two.begin(),two.end(),[](int a, int b)->bool{return a==b;});
+
+	BOOST_CHECK(val);
+}
+BOOST_AUTO_TEST_SUITE_END()
+
+
 /*init_unit_test_suite(int argc, char**argv){
 	return 0;
 }*/

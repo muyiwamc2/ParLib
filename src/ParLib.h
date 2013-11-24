@@ -450,9 +450,9 @@ namespace parallel {
 			return ans->first;
 	}
 
-	template<typename InputIt, typename UnaryPredicate>
+	template<typename InputIt, typename UnaryPredicate, typename Tpolicy = LaunchPolicies<InputIt>>
 	InputIt find_if_not(InputIt beg, InputIt end, UnaryPredicate p) {
-		return find_if(beg, end, std::not1(p));
+		return parallel::find_if<InputIt,UnaryPredicate,Tpolicy>(beg, end,std::not1(p));
 	}
 
 	template<typename InputIt, typename T>
@@ -538,28 +538,147 @@ namespace parallel {
 		auto ans = std::accumulate(output.begin(), output.end(), ret);
 		return ans;
 	}
+	template<typename InputIt, typename UnaryPredicate>
+		struct all_of_block {
+				void operator ()(InputIt beg, InputIt end, UnaryPredicate p,int &ret,std::input_iterator_tag) {
+					auto val = std::all_of(beg, end, p);
+					if(val)ret=1;
+					else ret=0;
 
-	template<typename InputIt, typename UnaryPredicate>
-	bool all_of(InputIt first, InputIt last, UnaryPredicate p) {
-		return find_if_not(first, last, p) == last;
+				}
+		};
+	template<typename InputIt, typename UnaryPredicate ,typename Tpolicy = LaunchPolicies<InputIt>>
+	bool all_of(InputIt beg, InputIt end, UnaryPredicate p) {
+			Tpolicy Tp;
+			bool ret = false;
+			Tp.SetLaunchPolicies(beg, end);
+			if(!Tp.length)
+				return true;
+
+			std::vector < std::thread > threads(Tp.num_threads - 1);
+			std::vector<int> output(Tp.num_threads);
+			InputIt block_start = beg;
+			InputIt block_end = beg;
+			InputIt last = end;
+
+			for(int i = 0; i < (Tp.num_threads - 1); i++) {
+
+				std::advance(block_end, Tp.block_size);
+				threads[i] = std::thread(all_of_block<InputIt, UnaryPredicate>(), block_start,
+				                         block_end, p, std::ref(output[i]),
+				                         typename std::iterator_traits<InputIt>::iterator_category());
+				block_start = block_end;
+			}
+			all_of_block<InputIt, UnaryPredicate>()(block_start, last, p,
+					std::ref(output[Tp.num_threads - 1]),
+					typename std::iterator_traits<InputIt>::iterator_category());
+
+			std::for_each(threads.begin(), threads.end(), std::mem_fn(&std::thread::join));
+
+			ret = std::all_of(output.begin(), output.end(), [](int k)->bool{return k==1;});
+			return ret;
 	}
 	template<typename InputIt, typename UnaryPredicate>
-	bool any_of(InputIt first, InputIt last, UnaryPredicate p) {
-		return find_if(first, last, p) != last;
-	}
+			struct any_of_block {
+					void operator ()(InputIt beg, InputIt end, UnaryPredicate p,int &ret,std::input_iterator_tag) {
+						auto val = std::any_of(beg, end, p);
+						if(val)ret=1;
+						else ret=0;
+
+					}
+			};
+	template<typename InputIt, typename UnaryPredicate ,typename Tpolicy = LaunchPolicies<InputIt>>
+		bool any_of(InputIt beg, InputIt end, UnaryPredicate p) {
+				Tpolicy Tp;
+				bool ret = false;
+				Tp.SetLaunchPolicies(beg, end);
+				if(!Tp.length)
+					return true;
+
+				std::vector < std::thread > threads(Tp.num_threads - 1);
+				std::vector<int> output(Tp.num_threads);
+				InputIt block_start = beg;
+				InputIt block_end = beg;
+				InputIt last = end;
+
+				for(int i = 0; i < (Tp.num_threads - 1); i++) {
+
+					std::advance(block_end, Tp.block_size);
+					threads[i] = std::thread(any_of_block<InputIt, UnaryPredicate>(), block_start,
+					                         block_end, p, std::ref(output[i]),
+					                         typename std::iterator_traits<InputIt>::iterator_category());
+					block_start = block_end;
+				}
+				any_of_block<InputIt, UnaryPredicate>()(block_start, last, p,
+						std::ref(output[Tp.num_threads - 1]),
+						typename std::iterator_traits<InputIt>::iterator_category());
+
+				std::for_each(threads.begin(), threads.end(), std::mem_fn(&std::thread::join));
+
+				ret = std::any_of(output.begin(), output.end(), [](int k)->bool{return k==1;});
+				return ret;
+		}
 	template<typename InputIt, typename UnaryPredicate>
-	bool none_of(InputIt first, InputIt last, UnaryPredicate p) {
-		return find_if(first, last, p) == last;
-	}
+				struct none_of_block {
+						void operator ()(InputIt beg, InputIt end, UnaryPredicate p,int &ret,std::input_iterator_tag) {
+							auto val = std::none_of(beg, end, p);
+							if(val)ret=1;
+							else ret=0;
+
+						}
+				};
+	template<typename InputIt, typename UnaryPredicate ,typename Tpolicy = LaunchPolicies<InputIt>>
+			bool none_of(InputIt beg, InputIt end, UnaryPredicate p) {
+					Tpolicy Tp;
+					bool ret = false;
+					Tp.SetLaunchPolicies(beg, end);
+					if(!Tp.length)
+						return true;
+
+					std::vector < std::thread > threads(Tp.num_threads - 1);
+					std::vector<int> output(Tp.num_threads);
+					InputIt block_start = beg;
+					InputIt block_end = beg;
+					InputIt last = end;
+
+					for(int i = 0; i < (Tp.num_threads - 1); i++) {
+
+						std::advance(block_end, Tp.block_size);
+						threads[i] = std::thread(none_of_block<InputIt, UnaryPredicate>(), block_start,
+						                         block_end, p, std::ref(output[i]),
+						                         typename std::iterator_traits<InputIt>::iterator_category());
+						block_start = block_end;
+					}
+					none_of_block<InputIt, UnaryPredicate>()(block_start, last, p,
+							std::ref(output[Tp.num_threads - 1]),
+							typename std::iterator_traits<InputIt>::iterator_category());
+
+					std::for_each(threads.begin(), threads.end(), std::mem_fn(&std::thread::join));
+
+					ret = std::all_of(output.begin(), output.end(), [](int k)->bool{return k==1;});
+					return ret;
+			}
 
 	template<typename InputIt1, typename InputIt2>
 	struct equal_block {
-			bool operator()(InputIt1 beg1, InputIt1 end1, InputIt2 beg2, bool &retval,
+			bool operator()(InputIt1 beg1, InputIt1 end1, InputIt2 beg2, int &retval,
 							std::input_iterator_tag) {
-				retval = std::equal(beg1, end1, beg2);
-				return retval;
+				auto ans = std::equal(beg1, end1, beg2);
+				if(ans)retval=1;
+				else retval=0;
+				return ans;
 			}
 	};
+	template<typename InputIt1, typename InputIt2>
+		struct equal_block4 {
+				bool operator()(InputIt1 beg1, InputIt1 end1, InputIt2 beg2,InputIt2 end2, int &retval,
+								std::input_iterator_tag) {
+					auto ans = std::equal(beg1, end1, beg2);
+					if(ans)retval=1;
+					else retval=0;
+					return ans;
+				}
+		};
 
 	template<typename InputIt, typename InputIt2, typename Tpolicy = LaunchPolicies<InputIt> >
 
@@ -569,8 +688,8 @@ namespace parallel {
 		// test to make sure they are at least as long
 		{
 
-			InputIt end2 = std::advance(beg2, Tp.length - 1);
-			InputIt testend1 = std::advance(beg1, Tp.length - 1);
+			InputIt end2 = beg2 + static_cast<typename std::iterator_traits<InputIt>::difference_type>(Tp.length - 1);
+			InputIt testend1 = beg1 + static_cast<typename std::iterator_traits<InputIt>::difference_type>(Tp.length - 1);
 			try {
 				if(*end2 != *testend1)
 					return false;
@@ -593,7 +712,7 @@ namespace parallel {
 		}
 
 		std::vector < std::thread > threads(Tp.num_threads - 1);
-		std::vector<bool> output(Tp.num_threads);
+		std::vector<int> output(Tp.num_threads);
 		InputIt block_start = beg1;
 		InputIt block_end = beg1;
 		InputIt2 block_start2 = beg2;
@@ -614,16 +733,18 @@ namespace parallel {
 				typename std::iterator_traits<InputIt>::iterator_category());
 		std::for_each(threads.begin(), threads.end(), std::mem_fn(&std::thread::join));
 
-		auto ans = std::all_of(output.begin(), output.end(), [](bool b)->bool {return b;});
+		auto ans = std::all_of(output.begin(), output.end(), [](int k)->bool {return k==1;});
 		return ans;
 	}
 
 	template<typename InputIt1, typename InputIt2, typename BinaryPredicate>
 	struct equal_block2 {
 			bool operator()(InputIt1 beg1, InputIt1 end1, InputIt2 beg2, BinaryPredicate p,
-							bool &retval, std::input_iterator_tag) {
-				retval = std::equal(beg1, end1, beg2, p);
-				return retval;
+							int &retval, std::input_iterator_tag) {
+				auto ans = std::equal(beg1, end1, beg2, p);
+				if(ans)retval=1;
+				else retval=0;
+				return ans;
 			}
 	};
 
@@ -636,8 +757,8 @@ namespace parallel {
 		// test to make sure they are at least as long
 		{
 
-			InputIt end2 = std::advance(beg2, Tp.length - 1);
-			InputIt testend1 = std::advance(beg1, Tp.length - 1);
+			InputIt end2 = beg2 + static_cast<typename std::iterator_traits<InputIt>::difference_type>(Tp.length - 1);
+			InputIt testend1 = beg1 + static_cast<typename std::iterator_traits<InputIt>::difference_type>(Tp.length - 1);
 			try {
 				if(!p(*end2, *testend1))
 					return false;
@@ -660,7 +781,7 @@ namespace parallel {
 		}
 
 		std::vector < std::thread > threads(Tp.num_threads - 1);
-		std::vector<bool> output(Tp.num_threads);
+		std::vector<int> output(Tp.num_threads);
 		InputIt block_start = beg1;
 		InputIt block_end = beg1;
 		InputIt2 block_start2 = beg2;
@@ -681,16 +802,18 @@ namespace parallel {
 				typename std::iterator_traits<InputIt>::iterator_category());
 		std::for_each(threads.begin(), threads.end(), std::mem_fn(&std::thread::join));
 
-		auto ans = std::all_of(output.begin(), output.end(), [](bool b)->bool {return b;});
+		auto ans = std::all_of(output.begin(), output.end(), [](int k)->bool {return k==1;});
 		return ans;
 	}
 
 	template<typename InputIt1, typename InputIt2, typename BinaryPredicate>
 	struct equal_block3 {
 			bool operator()(InputIt1 beg1, InputIt1 end1, InputIt2 beg2, InputIt2 end2,
-							BinaryPredicate p, bool &retval, std::input_iterator_tag) {
-				retval = std::equal(beg1, end1, beg2, end2, p);
-				return retval;
+							BinaryPredicate p, int &retval, std::input_iterator_tag) {
+				auto ans = std::equal(beg1, end1, beg2, p);
+				if(ans)retval=1;
+				else retval=0;
+				return ans;
 			}
 	};
 
@@ -704,30 +827,92 @@ namespace parallel {
 			return false;
 
 		std::vector < std::thread > threads(Tp.num_threads - 1);
-		std::vector<bool> output(Tp.num_threads);
+		std::vector<int> output(Tp.num_threads);
 		InputIt block_start = beg1;
 		InputIt block_end = beg1;
 		InputIt2 block_start2 = beg2;
+		InputIt2 block_end2 =beg2;
 		InputIt last = end1;
+		InputIt2 last2 = end2;
 
 		for(int i = 0; i < (Tp.num_threads - 1); i++) {
 
 			std::advance(block_end, Tp.block_size);
-
-			threads[i] = std::thread(equal_block2<InputIt, InputIt2, BinaryPredicate>(),
-					block_start, block_end, block_start2, p, std::ref(output[i]),
+			std::advance(block_end2, Tp.block_size);
+			threads[i] = std::thread(equal_block3<InputIt, InputIt2, BinaryPredicate>(),
+					block_start, block_end, block_start2,block_end2,p, std::ref(output[i]),
 					typename std::iterator_traits<InputIt>::iterator_category());
 			block_start = block_end;
-			std::advance(block_start2, Tp.block_size);
+			block_start2=block_end2;
 		}
-		equal_block2<InputIt, InputIt2, BinaryPredicate>()(block_start, last, block_start2, p,
+		equal_block3<InputIt, InputIt2, BinaryPredicate>()(block_start, last, block_start2,last2,p,
 				std::ref(output[Tp.num_threads - 1]),
 				typename std::iterator_traits<InputIt>::iterator_category());
 		std::for_each(threads.begin(), threads.end(), std::mem_fn(&std::thread::join));
 
-		auto ans = std::all_of(output.begin(), output.end(), [](bool b)->bool {return b;});
+		auto ans = std::all_of(output.begin(), output.end(), [](int k)->bool {return k==1;});
 		return ans;
 	}
+
+	//equal version 4
+	template<typename InputIt, typename InputIt2, typename Tpolicy = LaunchPolicies<InputIt> >
+
+		bool equal(InputIt beg1, InputIt end1, InputIt2 beg2, InputIt2 end2) {
+			Tpolicy Tp;
+			Tp.SetLaunchPolicies(beg1, end1);
+			// test to make sure they are at least as long
+			{
+
+				InputIt end2 = beg2 +  static_cast<typename std::iterator_traits<InputIt>::difference_type>(Tp.length - 1);
+				InputIt testend1 = beg1 + static_cast<typename std::iterator_traits<InputIt>::difference_type>(Tp.length - 1);
+				try {
+					if(*end2 != *testend1)
+						return false;
+				}
+				catch(...) {
+
+					return false; //failed.
+				}
+				try {
+					if((Tp.length == 0) && std::distance(beg2,end2)) {
+						return false;
+					}
+
+				}
+				catch(...) {
+					// if both failed, then it means the both containers are empty return true
+					return true;
+				}
+			}
+
+			std::vector < std::thread > threads(Tp.num_threads - 1);
+			std::vector<int> output(Tp.num_threads);
+			InputIt block_start = beg1;
+			InputIt block_end = beg1;
+			InputIt2 block_start2 = beg2;
+			InputIt2 block_end2 =beg2;
+			InputIt last = end1;
+			InputIt2 last2 =end2;
+
+			for(int i = 0; i < (Tp.num_threads - 1); i++) {
+
+				std::advance(block_end, Tp.block_size);
+				std::advance(block_end2, Tp.block_size);
+				threads[i] = std::thread(equal_block4<InputIt, InputIt2>(), block_start, block_end,
+						block_start2,block_end2, std::ref(output[i]),
+						typename std::iterator_traits<InputIt>::iterator_category());
+				block_start = block_end;
+				block_start2=block_end2;
+			}
+			equal_block4<InputIt, InputIt2>()(block_start, last, block_start2,last2,
+					std::ref(output[Tp.num_threads - 1]),
+					typename std::iterator_traits<InputIt>::iterator_category());
+			std::for_each(threads.begin(), threads.end(), std::mem_fn(&std::thread::join));
+
+			auto ans = std::all_of(output.begin(), output.end(), [](int k)->bool {return k==1;});
+			return ans;
+		}
+
 
 	template<typename ForwardIt>
 	struct max_element_block {
