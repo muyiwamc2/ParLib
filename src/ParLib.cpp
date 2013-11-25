@@ -264,7 +264,7 @@ BOOST_AUTO_TEST_CASE(max_test1){
 	BOOST_CHECK(*val==1099);
 }
 
-BOOST_AUTO_TEST_CASE(max_test12){
+BOOST_AUTO_TEST_CASE(max_test2){
 	using namespace std;
 	vector<int> one(1000);
 	iota(one.begin(),one.end(), 100);
@@ -272,6 +272,27 @@ BOOST_AUTO_TEST_CASE(max_test12){
 	auto val= parallel::max_element(one.begin(),one.end(),[]( int i , int j)->bool{return i<j;});
 
 	BOOST_CHECK(*val==1099);
+}
+
+BOOST_AUTO_TEST_CASE(minmax_test1){
+		using namespace std;
+		vector<int> one(1000);
+		iota(one.begin(),one.end(), 100);
+
+		auto val= parallel::minmax_element(one.begin(),one.end());
+
+		BOOST_CHECK(*(val.first)==100 );
+		BOOST_CHECK( *(val.second)==1099);
+}
+	BOOST_AUTO_TEST_CASE(minmax_test2){
+		using namespace std;
+		vector<int> one(1000);
+		iota(one.begin(),one.end(), 100);
+
+		auto val= parallel::minmax_element(one.begin(),one.end(),[]( int i , int j)->bool{return i<j;});
+
+		BOOST_CHECK(*(val.first)==100 );
+		BOOST_CHECK( *(val.second)==1099);
 }
 BOOST_AUTO_TEST_SUITE_END()
 

@@ -1160,11 +1160,11 @@ namespace parallel {
 
 	template<typename ForwardIt, typename Tpolicy = LaunchPolicies<ForwardIt> >
 
-	ForwardIt minmax_element(ForwardIt beg, ForwardIt end) {
+	std::pair<ForwardIt,ForwardIt> minmax_element(ForwardIt beg, ForwardIt end) {
 		Tpolicy Tp;
 		Tp.SetLaunchPolicies(beg, end);
 		if(!Tp.length)
-			return beg;
+			return std::pair<ForwardIt,ForwardIt>(end,end);
 
 		std::vector < std::thread > threads(Tp.num_threads - 1);
 		std::vector<std::pair<ForwardIt, typename std::iterator_traits<ForwardIt>::value_type> > output1(
@@ -1222,11 +1222,11 @@ namespace parallel {
 
 	template<typename ForwardIt, typename Comp, typename Tpolicy = LaunchPolicies<ForwardIt> >
 
-	ForwardIt minmax_element(ForwardIt beg, ForwardIt end, Comp cmp) {
+	std::pair<ForwardIt,ForwardIt> minmax_element(ForwardIt beg, ForwardIt end, Comp cmp) {
 		Tpolicy Tp;
 		Tp.SetLaunchPolicies(beg, end);
 		if(!Tp.length)
-			return beg;
+			return std::pair<ForwardIt,ForwardIt>(end,end);
 
 		std::vector < std::thread > threads(Tp.num_threads - 1);
 		std::vector<	std::pair<ForwardIt, typename std::iterator_traits<ForwardIt>::value_type>> output1(Tp.num_threads);
@@ -1258,7 +1258,7 @@ namespace parallel {
 		auto ans2 =
 				std::max_element(output2.begin(), output2.end(),
 						[&cmp](std::pair<ForwardIt, typename std::iterator_traits<ForwardIt>::value_type> a,
-								std::pair<ForwardIt, typename std::iterator_traits<ForwardIt>::value_type> b)->bool {return comp(a.second,b.second);});
+								std::pair<ForwardIt, typename std::iterator_traits<ForwardIt>::value_type> b)->bool {return cmp(a.second,b.second);});
 		return std::pair<ForwardIt, ForwardIt>((*ans1).first, (*ans2).first);
 	}
 
