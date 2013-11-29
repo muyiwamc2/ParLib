@@ -437,6 +437,141 @@ namespace parallel {
 		return std::accumulate(output.begin(), output.end(), init);
 	}
 
+	template<typename InputIt, typename OutputIt  >
+	struct adjacent_difference_block{
+			/**
+			 *
+			 * @param beg1 beginning of the block.
+			 * @param end1 The end of the block
+			 * @param beg2 the iterator to the first element in the Output container's block
+			 * @param first1 the iterator the first element of the input container
+			 * @param retval the return value
+			 * @param making sure this works for at the least InputIterators.
+			 * @return
+			 */
+	 void operator()(InputIt beg1, InputIt end1, OutputIt beg2, InputIt first1, OutputIt & retval, std::input_iterator_tag){
+		 typename std::iterator_traits<InputIt>::value_type val1 =*beg1;
+		 typename std::iterator_traits<OutputIt>::value_type val2 =*beg2;
+
+		 InputIt st =beg1;
+
+		 if(beg1 !=first1){
+			 st--;
+			 val1 =*beg1 -*st;
+			 val2 = val1;
+
+		 }
+		 retval =std::adjacent_difference(beg1,end1,beg2);
+		 if(beg1 !=first1)*beg2=val2;
+
+
+	 }
+	};
+
+	template<typename InputIt, typename OutputIt, typename Tpolicy = LaunchPolicies<
+				InputIt>>
+		OutputIt adjacent_difference(InputIt beg1, InputIt end1, OutputIt beg2) {
+			Tpolicy Tp;
+			Tp.SetLaunchPolicies(beg1, end1);
+			if(!Tp.length)
+				return beg2;
+
+			std::vector < std::thread > threads(Tp.num_threads - 1);
+			std::vector<OutputIt> output(Tp.num_threads);
+			InputIt block_start = beg1;
+			InputIt block_end = beg1;
+			OutputIt block_start2 = beg2;
+			InputIt last = end1;
+
+
+
+			for(int i = 0; i < (Tp.num_threads - 1); i++) {
+
+				std::advance(block_end, Tp.block_size);
+
+				threads[i] = std::thread(adjacent_difference_block<InputIt, OutputIt>(), block_start,
+						block_end, block_start2, beg1, std::ref(output[i]),
+						typename std::iterator_traits<InputIt>::iterator_category());
+				block_start = block_end;
+				std::advance(block_start2, Tp.block_size);
+			}
+
+			adjacent_difference_block<InputIt, OutputIt>()(block_start, last, block_start2,beg1,
+					std::ref(output[Tp.num_threads - 1]),
+					typename std::iterator_traits<InputIt>::iterator_category());
+			std::for_each(threads.begin(), threads.end(), std::mem_fn(&std::thread::join));
+
+			return output[Tp.num_threads -1];
+		}
+
+	template<class InputIt, class OutputIt, typename BinaryOp>
+		struct adjacent_difference_block2{
+				/**
+				 *
+				 * @param beg beginning of the block.
+				 * @param end The end of the block
+				 * @param beg2 the iterator to the first element in the Output container
+				 * @param op  Binary operator used to compute A -B
+				 * @param first1 the first element of the Input container.
+				 * @param prev the iterator of the previous element
+				 * @param retval the InputIt one past the end of newbegin,end
+				 * @param
+				 * @return
+				 */
+		 void operator()(InputIt beg1, InputIt end1,OutputIt beg2, BinaryOp op, InputIt first1,OutputIt & retval, std::input_iterator_tag){
+			 typename std::iterator_traits<InputIt>::value_type val1 =*beg1;
+			 typename std::iterator_traits<OutputIt>::value_type val2 =*beg2;
+
+			 		 InputIt st =beg1;
+
+			 		 if(beg1 !=first1){
+			 			 st--;
+			 			 val1 =op(*beg1,*st);
+			 			 val2 = val1;
+
+			 		 }
+			 retval =std::adjacent_difference(beg1,end1,beg2,op);
+			 if(beg1 !=first1)*beg2=val2;
+
+		 }
+		};
+
+	template<typename InputIt, typename OutputIt, typename BinaryOp , typename Tpolicy = LaunchPolicies<
+					InputIt>>
+			OutputIt adjacent_difference(InputIt beg1, InputIt end1, OutputIt beg2, BinaryOp op) {
+				Tpolicy Tp;
+				Tp.SetLaunchPolicies(beg1, end1);
+				if(!Tp.length)
+					return beg2;
+
+				std::vector < std::thread > threads(Tp.num_threads - 1);
+				std::vector<OutputIt> output(Tp.num_threads);
+				InputIt block_start = beg1;
+				InputIt block_end = beg1;
+				OutputIt block_start2 = beg2;
+				InputIt last =end1;
+
+
+				for(int i = 0; i < (Tp.num_threads - 1); i++) {
+
+					std::advance(block_end, Tp.block_size);
+
+					threads[i] = std::thread(adjacent_difference_block2<InputIt, OutputIt, BinaryOp>(), block_start,
+							block_end, block_start2, op, beg1, std::ref(output[i]),
+							typename std::iterator_traits<InputIt>::iterator_category());
+					block_start = block_end;
+					std::advance(block_start2, Tp.block_size);
+				}
+
+				adjacent_difference_block2<InputIt, OutputIt,BinaryOp>()(block_start, last, block_start2,
+						op,beg1, std::ref(output[Tp.num_threads-1]),
+						typename std::iterator_traits<InputIt>::iterator_category());
+				std::for_each(threads.begin(), threads.end(), std::mem_fn(&std::thread::join));
+
+				return output[Tp.num_threads -1];
+			}
+//partial sum
+
 	template<typename InputIt, typename T>
 	struct find_block {
 			void operator()(InputIt beg, InputIt end, T const & vl, std::pair<InputIt, bool>& ret,
