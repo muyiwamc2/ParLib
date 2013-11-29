@@ -135,38 +135,81 @@ BOOST_AUTO_TEST_SUITE(Inner_Product)
 
 		BOOST_CHECK(val == v);
 	}
-	BOOST_AUTO_TEST_SUITE_END()
-	BOOST_AUTO_TEST_SUITE(Adjacent_Difference)
+	BOOST_AUTO_TEST_SUITE_END()BOOST_AUTO_TEST_SUITE
+(Adjacent_Difference)
 	BOOST_AUTO_TEST_CASE( adjacent_difference_test1) {
-			using namespace std;
-			vector<int> one(1000);
-			vector<int> two(1000);
-			vector<int> three(1000);
- 			iota(one.begin(), one.end(), 1);
-			int j;
-			for(auto &i :one) {++j; i +=j;}
-			std::adjacent_difference(one.begin(), one.end(), two.begin());
-
-			parallel::adjacent_difference(one.begin(), one.end(), three.begin());
-			//for(auto k: three)cout<<k<<std::endl;
-			BOOST_CHECK(std::equal(two.begin(),two.end(),three.begin()));
+		using namespace std;
+		vector<int> one(1000);
+		vector<int> two(1000);
+		vector<int> three(1000);
+		iota(one.begin(), one.end(), 1);
+		int j;
+		for(auto &i : one) {
+			++j;
+			i += j;
 		}
-	BOOST_AUTO_TEST_CASE( adjacent_difference_test2) {
-				using namespace std;
-				vector<int> one(1000);
-				vector<int> two(1000);
-				vector<int> three(1000);
-	 			iota(one.begin(), one.end(), 1);
-				int j;
-				//function<int(int,int)> op = [&](int &a, int &b)->int{ return b-a;} ;
-				for(auto &i :one) {++j; i =i+j;}
-				std::adjacent_difference(one.begin(), one.end(), two.begin(),[](int a, int b)->int{ return a-b;});
+		std::adjacent_difference(one.begin(), one.end(), two.begin());
 
-				parallel::adjacent_difference(one.begin(), one.end(),  three.begin(),[](int a, int b)->int{ return a-b;});
-				//for(auto k: three)cout<<k<<std::endl;
-				BOOST_CHECK(std::equal(two.begin(),two.end(),three.begin()));
-			}
+		parallel::adjacent_difference(one.begin(), one.end(), three.begin());
+		//for(auto k: three)cout<<k<<std::endl;
+		BOOST_CHECK(std::equal(two.begin(), two.end(), three.begin()));
+	}
+	BOOST_AUTO_TEST_CASE( adjacent_difference_test2) {
+		using namespace std;
+		vector<int> one(1000);
+		vector<int> two(1000);
+		vector<int> three(1000);
+		iota(one.begin(), one.end(), 1);
+		int j;
+		//function<int(int,int)> op = [&](int &a, int &b)->int{ return b-a;} ;
+		for(auto &i : one) {
+			++j;
+			i = i + j;
+		}
+		std::adjacent_difference(one.begin(), one.end(), two.begin(),
+				[](int a, int b)->int {return a-b;});
+
+		parallel::adjacent_difference(one.begin(), one.end(), three.begin(),
+				[](int a, int b)->int {return a-b;});
+		//for(auto k: three)cout<<k<<std::endl;
+		BOOST_CHECK(std::equal(two.begin(), two.end(), three.begin()));
+	}
+
 	BOOST_AUTO_TEST_SUITE_END()
+
+BOOST_AUTO_TEST_SUITE(Partial_Sum)
+	BOOST_AUTO_TEST_CASE( partial_sum_test1) {
+		using namespace std;
+		vector<int> one(100);
+		vector<int> two(100);
+		vector<int> three(100);
+		iota(one.begin(), one.end(), 1);
+
+
+
+		std::partial_sum(one.begin(), one.end(), two.begin());
+
+		parallel::partial_sum(one.begin(), one.end(), three.begin());
+		//for(auto k: three)cout<<k<<std::endl;
+		BOOST_CHECK(std::equal(two.begin(), two.end(), three.begin()));
+	}
+	BOOST_AUTO_TEST_CASE( partial_sum_test2) {
+			using namespace std;
+			vector<int> one(100);
+			vector<int> two(100);
+			vector<int> three(100);
+			iota(one.begin(), one.end(), 1);
+
+
+
+			std::partial_sum(one.begin(), one.end(), two.begin(),[](int a, int b)->int{return a +b; });
+
+			parallel::partial_sum(one.begin(), one.end(), three.begin(),[](int a, int b)->int{return a +b ;});
+			//for(auto k: three)cout<<k<<std::endl;
+			BOOST_CHECK(std::equal(two.begin(), two.end(), three.begin()));
+		}
+	BOOST_AUTO_TEST_SUITE_END()
+
 BOOST_AUTO_TEST_SUITE(Find)
 	BOOST_AUTO_TEST_CASE( find_test1) {
 		using namespace std;
