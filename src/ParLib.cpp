@@ -259,6 +259,16 @@ BOOST_AUTO_TEST_SUITE(Find)
 		auto val2 = parallel::find_if_not(one.begin(), one.end(), op);
 		BOOST_CHECK(val == *val2);
 	}
+	BOOST_AUTO_TEST_CASE( find_first_of_test1) {
+			using namespace std;
+			vector<int> one(1000);
+			iota(one.begin(), one.end(), 1);
+			vector<int> two(20);
+			iota(two.begin(),two.end(), 456);
+			auto val1 = std::find_first_of(one.begin(),one.end(),two.begin(),two.end());
+			auto val2 = parallel::find_first_of(one.begin(),one.end(),two.begin(),two.end());
+			BOOST_CHECK(val1 == val2);
+		}
 	BOOST_AUTO_TEST_SUITE_END()
 
 BOOST_AUTO_TEST_SUITE(Count)
