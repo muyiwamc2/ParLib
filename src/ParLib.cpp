@@ -195,9 +195,9 @@ BOOST_AUTO_TEST_SUITE(Partial_Sum)
 	}
 	BOOST_AUTO_TEST_CASE( partial_sum_test2) {
 			using namespace std;
-			vector<int> one(100);
-			vector<int> two(100);
-			vector<int> three(100);
+			vector<int> one(1000);
+			vector<int> two(1000);
+			vector<int> three(1000);
 			iota(one.begin(), one.end(), 1);
 
 
@@ -259,16 +259,56 @@ BOOST_AUTO_TEST_SUITE(Find)
 		auto val2 = parallel::find_if_not(one.begin(), one.end(), op);
 		BOOST_CHECK(val == *val2);
 	}
-	BOOST_AUTO_TEST_CASE( find_first_of_test1) {
+	BOOST_AUTO_TEST_CASE( search_test1) {
+				using namespace std;
+				vector<int> one(1000);
+				iota(one.begin(), one.end(), 1);
+				vector<int> two(20);
+				iota(two.begin(),two.end(), 456);
+			    auto val1 = std::search(one.begin(),one.end(),two.begin(),two.end());
+				auto val2 = parallel::search(one.begin(),one.end(),two.begin(),two.end());
+				//cout<<*val1<<endl;
+				//cout<<*val2<<endl;
+				BOOST_CHECK(val1 == val2);
+			}
+	BOOST_AUTO_TEST_CASE( search_test2) {
 			using namespace std;
 			vector<int> one(1000);
 			iota(one.begin(), one.end(), 1);
 			vector<int> two(20);
 			iota(two.begin(),two.end(), 456);
-			auto val1 = std::find_first_of(one.begin(),one.end(),two.begin(),two.end());
-			auto val2 = parallel::find_first_of(one.begin(),one.end(),two.begin(),two.end());
+		    std::function<bool(int,int)>  op =[&](int v1, int v2){return v1==v2 ;};
+			auto val1 = std::search(one.begin(),one.end(),two.begin(),two.end(),op);
+			auto val2 = parallel::search(one.begin(),one.end(),two.begin(),two.end(),op);
+			//cout<<*val1<<endl;
+			//cout<<*val2<<endl;
 			BOOST_CHECK(val1 == val2);
 		}
+	BOOST_AUTO_TEST_CASE( search_n_test1) {
+				using namespace std;
+				vector<int> one(1000);
+				iota(one.begin(), one.end(), 1);
+				int val =173;int vl =20;
+				fill(one.begin() +456,one.begin()+456 +21, 173);
+			    //std::function<bool(int,int)>  op =[&](int v1, int v2){return v1==v2 ;};
+				auto val1 = std::search_n(one.begin(),one.end(),vl,val);
+				auto val2 = parallel::search_n(one.begin(),one.end(),vl,val);
+
+				BOOST_CHECK(val1 == val2);
+			}
+
+	BOOST_AUTO_TEST_CASE( search_n_test2) {
+					using namespace std;
+					vector<int> one(1000);
+					iota(one.begin(), one.end(), 1);
+					int val =173;int vl =20;
+					fill(one.begin() +456,one.begin()+456 +21, 173);
+				    std::function<bool(int,int)>  op =[&](int v1, int v2){return v1==v2 ;};
+					auto val1 = std::search_n(one.begin(),one.end(),vl,val,op);
+					auto val2 = parallel::search_n(one.begin(),one.end(),vl,val,op);
+
+					BOOST_CHECK(val1 == val2);
+				}
 	BOOST_AUTO_TEST_SUITE_END()
 
 BOOST_AUTO_TEST_SUITE(Count)
