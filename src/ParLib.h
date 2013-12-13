@@ -203,9 +203,9 @@ namespace parallel {
 	};
 	template<typename OutputIt, typename Size, typename T>
 	struct fill_n_block {
-			void operator()(OutputIt beg, OutputIt end,Size count, const T& value,
+			void operator()(OutputIt beg, OutputIt end, Size count, const T& value,
 							std::pair<OutputIt, bool> &ret) {
-				count = static_cast<Size>(std::distance(beg,end));
+				count = static_cast<Size>(std::distance(beg, end));
 				std::fill_n(beg, count, value);
 				ret.first = beg;
 				ret.second = true;
@@ -214,9 +214,9 @@ namespace parallel {
 	};
 	template<typename OutputIt, typename Size, typename T>
 	struct fill_n_block2 {
-			OutputIt operator()(OutputIt beg, OutputIt end,Size count, const T& value,
+			OutputIt operator()(OutputIt beg, OutputIt end, Size count, const T& value,
 								std::pair<OutputIt, bool> &ret) {
-				count = static_cast<Size>(std::distance(beg,end));
+				count = static_cast<Size>(std::distance(beg, end));
 				ret.first = std::fill_n(beg, count, value);
 				ret.second = true;
 				return ret.first;
@@ -250,18 +250,18 @@ namespace parallel {
 
 	}
 
-	template<typename OutputIt, typename Size, typename T,
-			typename Tpolicy = LaunchPolicies<OutputIt> >
+	template<typename OutputIt, typename Size, typename T, typename Tpolicy = LaunchPolicies<
+			OutputIt> >
 	void fill_n_old(OutputIt beg, Size count, T &value) {
 		Tpolicy Tp;
-		OutputIt end=beg;
+		OutputIt end = beg;
 		std::advance(end, count);
 		Tp.SetLaunchPolicies(beg, end);
 		if(!Tp.length)
 			return;
-		if(Tp.num_threads < 2){
-			 std::fill_n(beg, count, std::ref(value));
-			 return;
+		if(Tp.num_threads < 2) {
+			std::fill_n(beg, count, std::ref(value));
+			return;
 		}
 
 		std::vector < std::thread > threads(Tp.num_threads - 1);
@@ -272,49 +272,53 @@ namespace parallel {
 		for(int i; i < (Tp.num_threads - 1); i++) {
 
 			std::advance(block_end, Tp.block_size);
-			threads[i] = std::thread(fill_n_block<OutputIt, Size, T>(), block_start,block_end,count, std::ref(value),std::ref(output[i]));
+			threads[i] = std::thread(fill_n_block<OutputIt, Size, T>(), block_start, block_end,
+					count, std::ref(value), std::ref(output[i]));
 
 			block_start = block_end;
 		}
-		fill_n_block<OutputIt, Size, T>()(block_start,end ,count,std::ref(value),std::ref(output[Tp.num_threads-1]));
+		fill_n_block<OutputIt, Size, T>()(block_start, end, count, std::ref(value),
+				std::ref(output[Tp.num_threads - 1]));
 		std::for_each(threads.begin(), threads.end(), std::mem_fn(&std::thread::join));
 
 	}
 
-	template<typename OutputIt, typename Size, typename T,
-				typename Tpolicy = LaunchPolicies<OutputIt> >
-		OutputIt fill_n(OutputIt beg, Size count, T &value) {
-			Tpolicy Tp;
-			OutputIt end=beg;
-			std::advance(end, count);
-			Tp.SetLaunchPolicies(beg, end);
-			if(!Tp.length)
-				return beg;
-			if(Tp.num_threads < 2){
-				 return std::fill_n(beg, count, std::ref(value));
-
-			}
-
-			std::vector < std::thread > threads(Tp.num_threads - 1);
-			std::vector<std::pair<OutputIt, bool>> output(Tp.num_threads);
-			OutputIt block_start = beg;
-			OutputIt block_end = beg;
-
-			for(int i; i < (Tp.num_threads - 1); i++) {
-
-				std::advance(block_end, Tp.block_size);
-				threads[i] = std::thread(fill_n_block2<OutputIt, Size, T>(), block_start,block_end,count, std::ref(value),std::ref(output[i]));
-
-				block_start = block_end;
-			}
-			fill_n_block2<OutputIt, Size, T>()(block_start, end,count, std::ref(value),std::ref(output[Tp.num_threads-1]));
-			std::for_each(threads.begin(), threads.end(), std::mem_fn(&std::thread::join));
-			auto ans = std::find_if(output.rbegin(), output.rend(),
-							[](std::pair<OutputIt, bool> v)->bool {return v.second;});
-
-			return ans->first;
+	template<typename OutputIt, typename Size, typename T, typename Tpolicy = LaunchPolicies<
+			OutputIt> >
+	OutputIt fill_n(OutputIt beg, Size count, T &value) {
+		Tpolicy Tp;
+		OutputIt end = beg;
+		std::advance(end, count);
+		Tp.SetLaunchPolicies(beg, end);
+		if(!Tp.length)
+			return beg;
+		if(Tp.num_threads < 2) {
+			return std::fill_n(beg, count, std::ref(value));
 
 		}
+
+		std::vector < std::thread > threads(Tp.num_threads - 1);
+		std::vector<std::pair<OutputIt, bool>> output(Tp.num_threads);
+		OutputIt block_start = beg;
+		OutputIt block_end = beg;
+
+		for(int i; i < (Tp.num_threads - 1); i++) {
+
+			std::advance(block_end, Tp.block_size);
+			threads[i] = std::thread(fill_n_block2<OutputIt, Size, T>(), block_start, block_end,
+					count, std::ref(value), std::ref(output[i]));
+
+			block_start = block_end;
+		}
+		fill_n_block2<OutputIt, Size, T>()(block_start, end, count, std::ref(value),
+				std::ref(output[Tp.num_threads - 1]));
+		std::for_each(threads.begin(), threads.end(), std::mem_fn(&std::thread::join));
+		auto ans = std::find_if(output.rbegin(), output.rend(),
+				[](std::pair<OutputIt, bool> v)->bool {return v.second;});
+
+		return ans->first;
+
+	}
 	template<typename InputIt, typename T>
 	struct accumulate_block {
 			T operator()(InputIt beg, InputIt end, T &ret, std::input_iterator_tag) {
@@ -2671,6 +2675,93 @@ namespace parallel {
 		return std::pair<ForwardIt, ForwardIt>((*ans1).first, (*ans2).first);
 	}
 
+
+	template<typename InputIt, typename OutputIt, typename UnaryPred>
+	struct copy_if_block {
+
+			void operator()(InputIt beg1, InputIt end1, UnaryPred p,std::vector<InputIt> &ret,std::input_iterator_tag) {
+				InputIt first =beg1;
+				ret = std::vector<InputIt>();
+
+				while(first != end1) {
+					if (p(*first))
+					ret.push_back(first);
+					first++;
+				}
+			}
+
+			/**
+			 * @summary This version copies in all the values of the iterators that statisfy the required predicate into the Output Iterator.
+			 *
+			 * @param beg2 beginning of the Output container
+			 * @param ret vector containing Iterators to elements that satisfy the predicate.
+			 * @param
+			 * @return
+			 */
+			void operator()(OutputIt beg2,std::vector<InputIt> &ret,std::input_iterator_tag) {
+				typename std::vector<InputIt>::iterator first =ret.begin();
+				typename std::vector<InputIt>::iterator end = ret.end();
+
+				while(first != end) {
+					*beg2++ = *(*first);
+					first++;
+				}
+			}
+	};
+
+	template<typename InputIt, typename OutputIt, typename UnaryPred, typename Tpolicy = LaunchPolicies<InputIt> >
+	OutputIt copy_if(InputIt beg, InputIt end, OutputIt beg2, UnaryPred p) {
+		Tpolicy Tp;
+		Tp.SetLaunchPolicies(beg, end);
+		if(!Tp.length)
+			return beg;
+		if(Tp.num_threads < 2) {
+			return std::copy_if(beg, end,beg2,p);
+
+		}
+
+		std::vector<std::thread> threads(Tp.num_threads - 1);
+		std::vector<std::thread> threads2(Tp.num_threads -1);
+		std::vector<std::vector<InputIt>> output(Tp.num_threads);
+		InputIt block_start = beg;
+		InputIt block_end = beg;
+
+		for(int i=0; i < (Tp.num_threads - 1); i++) {
+
+			std::advance(block_end, Tp.block_size);
+
+			threads[i] = std::thread(copy_if_block<InputIt, OutputIt, UnaryPred>(), block_start,
+					block_end,p, std::ref(output[i]),
+					typename std::iterator_traits<InputIt>::iterator_category());
+
+			block_start = block_end;
+
+		}
+		copy_if_block<InputIt, OutputIt, UnaryPred>()( block_start,
+							end,p, std::ref(output[Tp.num_threads-1]),
+							typename std::iterator_traits<InputIt>::iterator_category());
+		std::for_each(threads.begin(), threads.end(), std::mem_fn(&std::thread::join));
+
+		//redo for copy. not exactly load balanced but works :)
+		OutputIt block_start2 = beg2;
+		OutputIt block_end2 = beg2;
+		for(int i=0; i < (Tp.num_threads - 1); i++) {
+
+			std::advance(block_end2, output[i].size());
+			threads2[i] = std::thread(copy_if_block<InputIt, OutputIt, UnaryPred>(), block_start2, std::ref(output[i]),
+					typename std::iterator_traits<InputIt>::iterator_category());
+
+			block_start2 = block_end2;
+		}
+		copy_if_block<InputIt, OutputIt, UnaryPred>()( block_start2,std::ref(output[Tp.num_threads - 1]),
+				typename std::iterator_traits<InputIt>::iterator_category());
+		std::for_each(threads2.begin(), threads2.end(), std::mem_fn(&std::thread::join));
+		auto ans = std::accumulate(output.begin(),output.end(),0,[&](int & val, std::vector<InputIt> & vec)->int{return val+ vec.size() ;  });
+
+		OutputIt last =beg2;
+		std::advance(last,ans);
+		return last;
+	}
 }
 
 #endif /* PARLIB_H_ */

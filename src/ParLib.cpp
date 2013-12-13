@@ -550,6 +550,26 @@ BOOST_AUTO_TEST_SUITE(MinMax)
 	}
 	BOOST_AUTO_TEST_SUITE_END()
 
+	BOOST_AUTO_TEST_SUITE(Copy)
+		BOOST_AUTO_TEST_CASE(copy_if) {
+			using namespace std;
+			vector<int> one(100);
+			iota(one.begin(), one.end(), 100);
+
+			std::vector<int> three(51);
+			std::vector<int> four(51);
+			std::function<bool(int)> filt = [](int k)->bool{return k %2;};
+			auto val1 = std::copy_if(one.begin(),one.end(),three.begin(),filt);
+			iota(one.begin(), one.end(), 100);
+			auto val2 = parallel::copy_if(one.begin(),one.end(),four.begin(),filt);
+			auto val = std::equal(three.begin(), three.end(), four.begin(),
+					[](int a, int b)->bool {return a==b;});
+			//std::cout<<"the size of one is:"<<one.size()<<std::endl;
+			for(auto i:four)std::cout<<i<<endl;
+			BOOST_CHECK(val==true && (*val1== *val2));
+		}
+	BOOST_AUTO_TEST_SUITE_END()
+
 	/*init_unit_test_suite(int argc, char**argv){
 	 return 0;
 	 }*/
