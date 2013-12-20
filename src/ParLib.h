@@ -106,7 +106,7 @@ namespace parallel {
 		std::vector < std::thread > threads(Tp.num_threads - 1);
 		InputIt block_start = beg;
 		InputIt block_end = beg;
-		for(int i; i < (Tp.num_threads - 1); i++) {
+		for(int i = 0; i < (Tp.num_threads - 1); i++) {
 
 			std::advance(block_end, Tp.block_size);
 			threads[i] = std::thread(foreach_block<InputIt, UnaryFunction>(), block_start,
@@ -140,8 +140,8 @@ namespace parallel {
 			}
 	};
 	/**
-	* Helper class for each block of the transform function
-    */
+	 * Helper class for each block of the transform function
+	 */
 	template<typename InputIt, typename InputIt2, typename OutputIt, typename BinaryOperator>
 	struct transform_block2 {
 			/**
@@ -251,6 +251,13 @@ namespace parallel {
 
 	template<typename ForwardIt, typename T>
 	struct fill_block {
+			/**
+			 *
+			 * @param beg
+			 * @param end
+			 * @param value
+			 * @param
+			 */
 			void operator()(ForwardIt beg, ForwardIt end, const T& value,
 							std::forward_iterator_tag) {
 				std::fill(beg, end, value);
@@ -258,6 +265,14 @@ namespace parallel {
 	};
 	template<typename OutputIt, typename Size, typename T>
 	struct fill_n_block {
+			/**
+			 *
+			 * @param beg
+			 * @param end
+			 * @param count
+			 * @param value
+			 * @param ret
+			 */
 			void operator()(OutputIt beg, OutputIt end, Size count, const T& value,
 							std::pair<OutputIt, bool> &ret) {
 				count = static_cast<Size>(std::distance(beg, end));
@@ -269,6 +284,15 @@ namespace parallel {
 	};
 	template<typename OutputIt, typename Size, typename T>
 	struct fill_n_block2 {
+			/**
+			 *
+			 * @param beg
+			 * @param end
+			 * @param count
+			 * @param value
+			 * @param ret
+			 * @return
+			 */
 			OutputIt operator()(OutputIt beg, OutputIt end, Size count, const T& value,
 								std::pair<OutputIt, bool> &ret) {
 				count = static_cast<Size>(std::distance(beg, end));
@@ -278,7 +302,12 @@ namespace parallel {
 			}
 
 	};
-
+	/**
+	 *
+	 * @param beg
+	 * @param end
+	 * @param value
+	 */
 	template<typename InputIt, typename T, typename Tpolicy = LaunchPolicies<InputIt> >
 	void fill(InputIt beg, InputIt end, T &value) {
 		Tpolicy Tp;
@@ -304,7 +333,12 @@ namespace parallel {
 		std::for_each(threads.begin(), threads.end(), std::mem_fn(&std::thread::join));
 
 	}
-
+	/**
+	 *
+	 * @param beg
+	 * @param count
+	 * @param value
+	 */
 	template<typename OutputIt, typename Size, typename T, typename Tpolicy = LaunchPolicies<
 			OutputIt> >
 	void fill_n_old(OutputIt beg, Size count, T &value) {
@@ -337,7 +371,13 @@ namespace parallel {
 		std::for_each(threads.begin(), threads.end(), std::mem_fn(&std::thread::join));
 
 	}
-
+	/**
+	 *
+	 * @param beg
+	 * @param count
+	 * @param value
+	 * @return
+	 */
 	template<typename OutputIt, typename Size, typename T, typename Tpolicy = LaunchPolicies<
 			OutputIt> >
 	OutputIt fill_n(OutputIt beg, Size count, T &value) {
@@ -357,7 +397,7 @@ namespace parallel {
 		OutputIt block_start = beg;
 		OutputIt block_end = beg;
 
-		for(int i; i < (Tp.num_threads - 1); i++) {
+		for(int i = 0; i < (Tp.num_threads - 1); i++) {
 
 			std::advance(block_end, Tp.block_size);
 			threads[i] = std::thread(fill_n_block2<OutputIt, Size, T>(), block_start, block_end,
@@ -376,6 +416,14 @@ namespace parallel {
 	}
 	template<typename InputIt, typename T>
 	struct accumulate_block {
+			/**
+			 *
+			 * @param beg
+			 * @param end
+			 * @param ret
+			 * @param
+			 * @return
+			 */
 			T operator()(InputIt beg, InputIt end, T &ret, std::input_iterator_tag) {
 
 				ret = std::accumulate(beg, end, ret);
@@ -386,6 +434,15 @@ namespace parallel {
 
 	template<typename InputIt, typename T, typename BinaryOperator>
 	struct accumulate_block2 {
+			/**
+			 *
+			 * @param beg
+			 * @param end
+			 * @param ret
+			 * @param op
+			 * @param
+			 * @return
+			 */
 			T operator()(InputIt beg, InputIt end, T &ret, BinaryOperator op,
 							std::input_iterator_tag) {
 
@@ -394,7 +451,13 @@ namespace parallel {
 
 			}
 	};
-
+	/**
+	 *
+	 * @param beg
+	 * @param end
+	 * @param init
+	 * @return
+	 */
 	template<typename InputIt, typename T, typename Tpolicy = LaunchPolicies<InputIt>>
 	T accumulate(InputIt beg, InputIt end, T init) {
 		Tpolicy Tp;
@@ -424,6 +487,14 @@ namespace parallel {
 		return std::accumulate(output.begin(), output.end(), init);
 	}
 
+	/**
+	 *
+	 * @param beg
+	 * @param end
+	 * @param init
+	 * @param op
+	 * @return
+	 */
 	template<typename InputIt, typename T, typename BinaryOperator,
 			typename Tpolicy = LaunchPolicies<InputIt>>
 	T accumulate(InputIt beg, InputIt end, T init, BinaryOperator op) {
@@ -457,6 +528,15 @@ namespace parallel {
 
 	template<typename InputIt, typename T, typename UnaryPred>
 	struct accumulate_if_block {
+			/**
+			 *
+			 * @param beg
+			 * @param end
+			 * @param ret
+			 * @param p
+			 * @param
+			 * @return
+			 */
 			T operator()(InputIt beg, InputIt end, T& ret, UnaryPred p, std::input_iterator_tag) {
 				for(; beg != end; ++beg) {
 					if(p(*beg))
@@ -468,6 +548,16 @@ namespace parallel {
 
 	template<typename InputIt, typename T, typename UnaryPred, typename BinaryOperator>
 	struct accumulate_if_block2 {
+			/**
+			 *
+			 * @param beg
+			 * @param end
+			 * @param ret
+			 * @param p
+			 * @param op
+			 * @param
+			 * @return
+			 */
 			T operator()(InputIt beg, InputIt end, T& ret, UnaryPred p, BinaryOperator op,
 							std::input_iterator_tag) {
 				for(; beg != end; ++beg) {
@@ -477,6 +567,14 @@ namespace parallel {
 				return ret;
 			}
 	};
+	/**
+	 *
+	 * @param beg
+	 * @param end
+	 * @param init
+	 * @param p
+	 * @return
+	 */
 	template<typename InputIt, typename T, typename UnaryPred, typename Tpolicy = LaunchPolicies<
 			InputIt>>
 	T accumulate_if(InputIt beg, InputIt end, T init, UnaryPred p) {
@@ -511,7 +609,15 @@ namespace parallel {
 
 		return std::accumulate(output.begin(), output.end(), init);
 	}
-
+	/**
+	 *
+	 * @param beg
+	 * @param end
+	 * @param init
+	 * @param p
+	 * @param op
+	 * @return
+	 */
 	template<typename InputIt, typename T, typename UnaryPred, typename BinaryOperator,
 			typename Tpolicy = LaunchPolicies<InputIt>>
 	T accumulate_if(InputIt beg, InputIt end, T init, UnaryPred p, BinaryOperator op) {
@@ -545,25 +651,57 @@ namespace parallel {
 
 		return std::accumulate(output.begin(), output.end(), init, op);
 	}
-
+	/**
+	 *
+	 */
 	template<typename InputIt1, typename InputIt2, typename T>
 	struct inner_product_block {
+			/**
+			 *
+			 * @param beg1
+			 * @param end1
+			 * @param beg2
+			 * @param retval
+			 * @param
+			 * @param
+			 */
 			void operator()(InputIt1 beg1, InputIt1 end1, InputIt2 beg2, T &retval,
 							std::input_iterator_tag, std::input_iterator_tag) {
 				retval = std::inner_product(beg1, end1, beg2, retval);
 
 			}
 	};
-
+	/**
+	 *
+	 */
 	template<typename InputIt1, typename InputIt2, typename T, typename BinaryOp1,
 			typename BinaryOp2>
 	struct inner_product_block2 {
+			/**
+			 *
+			 * @param beg1
+			 * @param end1
+			 * @param beg2
+			 * @param retval
+			 * @param op1
+			 * @param op2
+			 * @param
+			 * @param
+			 */
 			void operator()(InputIt1 beg1, InputIt1 end1, InputIt2 beg2, T &retval, BinaryOp1 op1,
 							BinaryOp2 op2, std::input_iterator_tag, std::input_iterator_tag) {
 				retval = std::inner_product(beg1, end1, beg2, retval, op1, op2);
 
 			}
 	};
+	/**
+	 *
+	 * @param beg1
+	 * @param end1
+	 * @param beg2
+	 * @param init
+	 * @return
+	 */
 	template<typename InputIt, typename InputIt2, typename T, typename Tpolicy = LaunchPolicies<
 			InputIt>>
 	T inner_product(InputIt beg1, InputIt end1, InputIt2 beg2, T init) {
@@ -598,6 +736,16 @@ namespace parallel {
 
 		return std::accumulate(output.begin(), output.end(), init);
 	}
+	/**
+	 *
+	 * @param beg1
+	 * @param end1
+	 * @param beg2
+	 * @param init
+	 * @param op1
+	 * @param op2
+	 * @return
+	 */
 	template<typename InputIt, typename InputIt2, typename T, typename BinaryOp1,
 			typename BinaryOp2, typename Tpolicy = LaunchPolicies<InputIt>>
 	T inner_product(InputIt beg1, InputIt end1, InputIt2 beg2, T init, BinaryOp1 op1,
@@ -666,7 +814,13 @@ namespace parallel {
 
 			}
 	};
-
+	/**
+	 *
+	 * @param beg1
+	 * @param end1
+	 * @param beg2
+	 * @return
+	 */
 	template<typename InputIt, typename OutputIt, typename Tpolicy = LaunchPolicies<InputIt>>
 	OutputIt adjacent_difference(InputIt beg1, InputIt end1, OutputIt beg2) {
 		Tpolicy Tp;
@@ -754,7 +908,14 @@ namespace parallel {
 
 			}
 	};
-
+	/**
+	 *
+	 * @param beg1
+	 * @param end1
+	 * @param beg2
+	 * @param op
+	 * @return
+	 */
 	template<typename InputIt, typename OutputIt, typename BinaryOp,
 			typename Tpolicy = LaunchPolicies<InputIt>>
 	OutputIt adjacent_difference(InputIt beg1, InputIt end1, OutputIt beg2, BinaryOp op) {
@@ -876,6 +1037,13 @@ namespace parallel {
 
 			}
 	};
+	/**
+	 *
+	 * @param beg1
+	 * @param end1
+	 * @param beg2
+	 * @return
+	 */
 	template<typename InputIt, typename OutputIt, typename Tpolicy = LaunchPolicies<InputIt>>
 	OutputIt partial_sum(InputIt beg1, InputIt end1, OutputIt beg2) {
 		Tpolicy Tp;
@@ -1018,7 +1186,14 @@ namespace parallel {
 
 			}
 	};
-
+	/**
+	 *
+	 * @param beg1
+	 * @param end1
+	 * @param beg2
+	 * @param op
+	 * @return
+	 */
 	template<typename InputIt, typename OutputIt, typename BinaryOp,
 			typename Tpolicy = LaunchPolicies<InputIt>>
 	OutputIt partial_sum(InputIt beg1, InputIt end1, OutputIt beg2, BinaryOp op) {
@@ -1089,6 +1264,14 @@ namespace parallel {
 
 	template<typename InputIt, typename T>
 	struct find_block {
+			/**
+			 *
+			 * @param beg
+			 * @param end
+			 * @param vl
+			 * @param ret
+			 * @param
+			 */
 			void operator()(InputIt beg, InputIt end, T const & vl, std::pair<InputIt, bool>& ret,
 							std::input_iterator_tag) {
 				InputIt res = std::find(beg, end, vl);
@@ -1103,9 +1286,18 @@ namespace parallel {
 				}
 			}
 	};
-
+	/**
+	 *
+	 */
 	template<typename ForwardIt>
 	struct adjacent_find_block {
+			/**
+			 *
+			 * @param beg
+			 * @param end
+			 * @param ret
+			 * @param
+			 */
 			void operator()(ForwardIt beg, ForwardIt end, std::pair<ForwardIt, bool>& ret,
 							std::forward_iterator_tag) {
 
@@ -1121,7 +1313,13 @@ namespace parallel {
 				}
 			}
 	};
-
+	/**
+	 *
+	 * @param beg
+	 * @param end
+	 * @param val
+	 * @return
+	 */
 	template<typename InputIt, typename T, typename Tpolicy = LaunchPolicies<InputIt> >
 	InputIt find(InputIt beg, InputIt end, const T & val) {
 		Tpolicy Tp;
@@ -1155,7 +1353,12 @@ namespace parallel {
 		else
 			return ans->first;
 	}
-
+	/**
+	 *
+	 * @param beg
+	 * @param end
+	 * @return
+	 */
 	template<typename ForwardIt, typename Tpolicy = LaunchPolicies<ForwardIt> >
 	ForwardIt adjacent_find(ForwardIt beg, ForwardIt end) {
 		Tpolicy Tp;
@@ -1194,6 +1397,14 @@ namespace parallel {
 
 	template<typename InputIt, typename UnaryPredicate>
 	struct find_if_block {
+			/**
+			 *
+			 * @param beg
+			 * @param end
+			 * @param p
+			 * @param ret
+			 * @param
+			 */
 			void operator()(InputIt beg, InputIt end, UnaryPredicate p,
 							std::pair<InputIt, bool>& ret, std::input_iterator_tag) {
 				InputIt res = std::find_if(beg, end, p);
@@ -1210,6 +1421,14 @@ namespace parallel {
 	};
 	template<typename InputIt, typename BinaryPredicate>
 	struct adjacent_find2_block {
+			/**
+			 *
+			 * @param beg
+			 * @param end
+			 * @param p
+			 * @param ret
+			 * @param
+			 */
 			void operator()(InputIt beg, InputIt end, BinaryPredicate p,
 							std::pair<InputIt, bool>& ret, std::forward_iterator_tag) {
 				InputIt res = std::adjacent_find(beg, end, p);
@@ -1224,7 +1443,13 @@ namespace parallel {
 				}
 			}
 	};
-
+	/**
+	 *
+	 * @param beg
+	 * @param end
+	 * @param p
+	 * @return
+	 */
 	template<typename InputIt, typename UnaryPredicate, typename Tpolicy = LaunchPolicies<InputIt> >
 	InputIt find_if(InputIt beg, InputIt end, UnaryPredicate p) {
 		Tpolicy Tp;
@@ -1259,7 +1484,13 @@ namespace parallel {
 		else
 			return ans->first;
 	}
-
+	/**
+	 *
+	 * @param beg
+	 * @param end
+	 * @param p
+	 * @return
+	 */
 	template<typename ForwardIt, typename BinaryPredicate, typename Tpolicy = LaunchPolicies<
 			ForwardIt> >
 	ForwardIt adjacent_find(ForwardIt beg, ForwardIt end, BinaryPredicate p) {
@@ -1298,7 +1529,13 @@ namespace parallel {
 		else
 			return ans->first;
 	}
-
+	/**
+	 *
+	 * @param beg
+	 * @param end
+	 * @param p
+	 * @return
+	 */
 	template<typename InputIt, typename UnaryPredicate, typename Tpolicy = LaunchPolicies<InputIt>>
 	InputIt find_if_not(InputIt beg, InputIt end, UnaryPredicate p) {
 		return parallel::find_if<InputIt, UnaryPredicate, Tpolicy>(beg, end, std::not1(p));
@@ -1306,6 +1543,17 @@ namespace parallel {
 
 	template<typename ForwardIt1, typename ForwardIt2>
 	struct find_first_of_block {
+			/**
+			 *
+			 * @param beg1
+			 * @param end1
+			 * @param beg2
+			 * @param end2
+			 * @param retval
+			 * @param
+			 * @param
+			 * @return
+			 */
 			ForwardIt1 operator()(ForwardIt1 beg1, ForwardIt1 end1, ForwardIt2 beg2,
 									ForwardIt2 end2, std::pair<ForwardIt1, bool>&retval,
 									std::forward_iterator_tag, std::forward_iterator_tag) {
@@ -1316,6 +1564,17 @@ namespace parallel {
 					retval.second = true;
 				return retval.first;
 			}
+			/**
+			 *
+			 * @param beg1
+			 * @param end1
+			 * @param beg2
+			 * @param end2
+			 * @param retval
+			 * @param
+			 * @param
+			 * @return
+			 */
 			ForwardIt1 operator()(ForwardIt1 beg1, ForwardIt1 end1, ForwardIt2 beg2,
 									ForwardIt2 end2, std::pair<ForwardIt1, bool>&retval,
 									std::input_iterator_tag, std::input_iterator_tag) {
@@ -1327,7 +1586,14 @@ namespace parallel {
 				return retval.first;
 			}
 	};
-
+	/**
+	 *
+	 * @param beg1
+	 * @param end1
+	 * @param beg2
+	 * @param end2
+	 * @return
+	 */
 	template<typename ForwardIt1, typename ForwardIt2, typename Tpolicy = LaunchPolicies<ForwardIt1> >
 	ForwardIt1 find_first_of(ForwardIt1 beg1, ForwardIt1 end1, ForwardIt2 beg2, ForwardIt2 end2) {
 		Tpolicy Tp;
@@ -1369,6 +1635,18 @@ namespace parallel {
 
 	template<typename ForwardIt1, typename ForwardIt2, typename BinaryOp>
 	struct find_first_of_block2 {
+			/**
+			 *
+			 * @param beg1
+			 * @param end1
+			 * @param beg2
+			 * @param end2
+			 * @param op
+			 * @param retval
+			 * @param
+			 * @param
+			 * @return
+			 */
 			ForwardIt1 operator()(ForwardIt1 beg1, ForwardIt1 end1, ForwardIt2 beg2,
 									ForwardIt2 end2, BinaryOp op,
 									std::pair<ForwardIt1, bool>&retval, std::forward_iterator_tag,
@@ -1380,6 +1658,18 @@ namespace parallel {
 					retval.second = true;
 				return retval.first;
 			}
+			/**
+			 *
+			 * @param beg1
+			 * @param end1
+			 * @param beg2
+			 * @param end2
+			 * @param op
+			 * @param retval
+			 * @param
+			 * @param
+			 * @return
+			 */
 			ForwardIt1 operator()(ForwardIt1 beg1, ForwardIt1 end1, ForwardIt2 beg2,
 									ForwardIt2 end2, BinaryOp op,
 									std::pair<ForwardIt1, bool>&retval, std::input_iterator_tag,
@@ -1393,6 +1683,15 @@ namespace parallel {
 			}
 	};
 
+	/**
+	 *
+	 * @param beg1
+	 * @param end1
+	 * @param beg2
+	 * @param end2
+	 * @param op
+	 * @return
+	 */
 	template<typename ForwardIt1, typename ForwardIt2, typename BinaryOp,
 			typename Tpolicy = LaunchPolicies<ForwardIt1> >
 	ForwardIt1 find_first_of(ForwardIt1 beg1, ForwardIt1 end1, ForwardIt2 beg2, ForwardIt2 end2,
@@ -1435,6 +1734,17 @@ namespace parallel {
 	}
 	template<typename ForwardIt1, typename ForwardIt2>
 	struct search_block {
+			/**
+			 *
+			 * @param beg1
+			 * @param end1
+			 * @param beg2
+			 * @param end2
+			 * @param ret
+			 * @param
+			 * @param
+			 * @return
+			 */
 			ForwardIt1 operator ()(ForwardIt1 beg1, ForwardIt1 end1, ForwardIt2 beg2,
 									ForwardIt2 end2, std::pair<ForwardIt1, bool> &ret,
 									std::forward_iterator_tag, std::forward_iterator_tag) {
@@ -1450,6 +1760,18 @@ namespace parallel {
 
 	template<typename ForwardIt1, typename ForwardIt2, typename BinaryPredicate>
 	struct search_block2 {
+			/**
+			 *
+			 * @param beg1
+			 * @param end1
+			 * @param beg2
+			 * @param end2
+			 * @param p
+			 * @param ret
+			 * @param
+			 * @param
+			 * @return
+			 */
 			ForwardIt1 operator ()(ForwardIt1 beg1, ForwardIt1 end1, ForwardIt2 beg2,
 									ForwardIt2 end2, BinaryPredicate p,
 									std::pair<ForwardIt1, bool> &ret, std::forward_iterator_tag,
@@ -1464,6 +1786,14 @@ namespace parallel {
 			}
 	};
 
+	/**
+	 *
+	 * @param beg1
+	 * @param end1
+	 * @param beg2
+	 * @param end2
+	 * @return
+	 */
 	template<typename ForwardIt1, typename ForwardIt2, typename Tpolicy = LaunchPolicies<ForwardIt1> >
 	ForwardIt1 search(ForwardIt1 beg1, ForwardIt1 end1, ForwardIt2 beg2, ForwardIt2 end2) {
 		Tpolicy Tp;
@@ -1507,7 +1837,15 @@ namespace parallel {
 		else
 			return ans->first;
 	}
-
+	/**
+	 *
+	 * @param beg1
+	 * @param end1
+	 * @param beg2
+	 * @param end2
+	 * @param p
+	 * @return
+	 */
 	template<typename ForwardIt1, typename ForwardIt2, typename BinaryPredicate,
 			typename Tpolicy = LaunchPolicies<ForwardIt1> >
 	ForwardIt1 search(ForwardIt1 beg1, ForwardIt1 end1, ForwardIt2 beg2, ForwardIt2 end2,
@@ -1553,8 +1891,21 @@ namespace parallel {
 		else
 			return ans->first;
 	}
+	/**
+	 *
+	 */
 	template<typename ForwardIt, typename Size, typename T>
 	struct search_n_block {
+			/**
+			 *
+			 * @param beg
+			 * @param end
+			 * @param count
+			 * @param value
+			 * @param ret
+			 * @param
+			 * @return
+			 */
 			ForwardIt operator ()(ForwardIt beg, ForwardIt end, Size count, const T& value,
 									std::pair<ForwardIt, bool> &ret, std::forward_iterator_tag) {
 
@@ -1568,6 +1919,17 @@ namespace parallel {
 	};
 	template<typename ForwardIt, typename Size, typename T, typename BinaryPredicate>
 	struct search_n_block2 {
+			/**
+			 *
+			 * @param beg
+			 * @param end
+			 * @param count
+			 * @param value
+			 * @param p
+			 * @param ret
+			 * @param
+			 * @return
+			 */
 			ForwardIt operator ()(ForwardIt beg, ForwardIt end, Size count, const T& value,
 									BinaryPredicate p, std::pair<ForwardIt, bool> &ret,
 									std::forward_iterator_tag) {
@@ -1580,6 +1942,14 @@ namespace parallel {
 				return ret.first;
 			}
 	};
+	/**
+	 *
+	 * @param beg
+	 * @param end
+	 * @param count
+	 * @param value
+	 * @return
+	 */
 	template<typename ForwardIt, typename Size, typename T, typename Tpolicy = LaunchPolicies<
 			ForwardIt> >
 	ForwardIt search_n(ForwardIt beg, ForwardIt end, Size count, T& value) {
@@ -1623,6 +1993,15 @@ namespace parallel {
 		else
 			return ans->first;
 	}
+	/**
+	 *
+	 * @param beg
+	 * @param end
+	 * @param count
+	 * @param value
+	 * @param p
+	 * @return
+	 */
 	template<typename ForwardIt, typename Size, typename T, typename BinaryPredicate,
 			typename Tpolicy = LaunchPolicies<ForwardIt> >
 	ForwardIt search_n(ForwardIt beg, ForwardIt end, Size count, T& value, BinaryPredicate p) {
@@ -1669,6 +2048,17 @@ namespace parallel {
 
 	template<typename ForwardIt1, typename ForwardIt2>
 	struct find_end_block {
+			/**
+			 *
+			 * @param beg1
+			 * @param end1
+			 * @param beg2
+			 * @param end2
+			 * @param ret
+			 * @param
+			 * @param
+			 * @return
+			 */
 			ForwardIt1 operator ()(ForwardIt1 beg1, ForwardIt1 end1, ForwardIt2 beg2,
 									ForwardIt2 end2, std::pair<ForwardIt1, bool> &ret,
 									std::forward_iterator_tag, std::forward_iterator_tag) {
@@ -1684,6 +2074,18 @@ namespace parallel {
 
 	template<typename ForwardIt1, typename ForwardIt2, typename BinaryOperator>
 	struct find_end_block2 {
+			/**
+			 *
+			 * @param beg1
+			 * @param end1
+			 * @param beg2
+			 * @param end2
+			 * @param op
+			 * @param ret
+			 * @param
+			 * @param
+			 * @return
+			 */
 			ForwardIt1 operator ()(ForwardIt1 beg1, ForwardIt1 end1, ForwardIt2 beg2,
 									ForwardIt2 end2, BinaryOperator op,
 									std::pair<ForwardIt1, bool> &ret, std::forward_iterator_tag,
@@ -1698,6 +2100,14 @@ namespace parallel {
 			}
 	};
 
+	/**
+	 *
+	 * @param beg1
+	 * @param end1
+	 * @param beg2
+	 * @param end2
+	 * @return
+	 */
 	template<typename ForwardIt1, typename ForwardIt2, typename Tpolicy = LaunchPolicies<ForwardIt1> >
 	ForwardIt1 find_end(ForwardIt1 beg1, ForwardIt1 end1, ForwardIt2 beg2, ForwardIt2 end2) {
 		Tpolicy Tp;
@@ -1741,7 +2151,15 @@ namespace parallel {
 		else
 			return ans->first;
 	}
-
+	/**
+	 *
+	 * @param beg1
+	 * @param end1
+	 * @param beg2
+	 * @param end2
+	 * @param op
+	 * @return
+	 */
 	template<typename ForwardIt1, typename ForwardIt2, typename BinaryOperator,
 			typename Tpolicy = LaunchPolicies<ForwardIt1> >
 	ForwardIt1 find_end(ForwardIt1 beg1, ForwardIt1 end1, ForwardIt2 beg2, ForwardIt2 end2,
@@ -1790,6 +2208,16 @@ namespace parallel {
 
 	template<typename InputIt1, typename InputIt2>
 	struct mismatch_block {
+			/**
+			 *
+			 * @param beg1
+			 * @param end1
+			 * @param beg2
+			 * @param ret
+			 * @param
+			 * @param
+			 * @return
+			 */
 			std::pair<InputIt1, InputIt2> operator ()(
 					InputIt1 beg1, InputIt1 end1, InputIt2 beg2,
 					std::pair<std::pair<InputIt1, InputIt2>, bool> &ret, std::input_iterator_tag,
@@ -1803,9 +2231,22 @@ namespace parallel {
 				return ret.first;
 			}
 	};
-
+	/**
+	 *
+	 */
 	template<typename InputIt1, typename InputIt2, typename BinaryOperator>
 	struct mismatch_block2 {
+			/**
+			 *
+			 * @param beg1
+			 * @param end1
+			 * @param beg2
+			 * @param op
+			 * @param ret
+			 * @param
+			 * @param
+			 * @return
+			 */
 			std::pair<InputIt1, InputIt2> operator ()(
 					InputIt1 beg1, InputIt1 end1, InputIt2 beg2, BinaryOperator op,
 					std::pair<std::pair<InputIt1, InputIt2>, bool> &ret, std::input_iterator_tag,
@@ -1819,7 +2260,13 @@ namespace parallel {
 				return ret.first;
 			}
 	};
-
+	/**
+	 *
+	 * @param beg1
+	 * @param end1
+	 * @param beg2
+	 * @return
+	 */
 	template<typename InputIt1, typename InputIt2, typename Tpolicy = LaunchPolicies<InputIt1> >
 	std::pair<InputIt1, InputIt2> mismatch(InputIt1 beg1, InputIt1 end1, InputIt2 beg2) {
 		Tpolicy Tp;
@@ -1859,7 +2306,14 @@ namespace parallel {
 		else
 			return ans->first;
 	}
-
+	/**
+	 *
+	 * @param beg1
+	 * @param end1
+	 * @param beg2
+	 * @param op
+	 * @return
+	 */
 	template<typename InputIt1, typename InputIt2, typename BinaryOperator,
 			typename Tpolicy = LaunchPolicies<InputIt1> >
 	std::pair<InputIt1, InputIt2> mismatch(InputIt1 beg1, InputIt1 end1, InputIt2 beg2,
@@ -1904,6 +2358,15 @@ namespace parallel {
 
 	template<typename InputIt, typename T>
 	struct count_block {
+			/**
+			 *
+			 * @param beg
+			 * @param end
+			 * @param val
+			 * @param ret
+			 * @param
+			 * @return
+			 */
 			typename std::iterator_traits<InputIt>::difference_type operator ()(
 					InputIt beg, InputIt end, const T &val,
 					typename std::iterator_traits<InputIt>::difference_type &ret,
@@ -1912,7 +2375,13 @@ namespace parallel {
 				return ret;
 			}
 	};
-
+	/**
+	 *
+	 * @param beg
+	 * @param end
+	 * @param val
+	 * @return
+	 */
 	template<typename InputIt, typename T, typename Tpolicy = LaunchPolicies<InputIt> >
 	typename std::iterator_traits<InputIt>::difference_type count(InputIt beg, InputIt end,
 																	const T &val) {
@@ -1947,6 +2416,15 @@ namespace parallel {
 
 	template<typename InputIt, typename UnaryPredicate>
 	struct count_if_block {
+			/**
+			 *
+			 * @param beg
+			 * @param end
+			 * @param p
+			 * @param ret
+			 * @param
+			 * @return
+			 */
 			typename std::iterator_traits<InputIt>::difference_type operator ()(
 					InputIt beg, InputIt end, UnaryPredicate p,
 					typename std::iterator_traits<InputIt>::difference_type &ret,
@@ -1955,7 +2433,13 @@ namespace parallel {
 				return ret;
 			}
 	};
-
+	/**
+	 *
+	 * @param beg
+	 * @param end
+	 * @param p
+	 * @return
+	 */
 	template<typename InputIt, typename UnaryPredicate, typename Tpolicy = LaunchPolicies<InputIt> >
 	typename std::iterator_traits<InputIt>::difference_type count_if(InputIt beg, InputIt end,
 																		UnaryPredicate p) {
@@ -1990,6 +2474,14 @@ namespace parallel {
 	}
 	template<typename InputIt, typename UnaryPredicate>
 	struct all_of_block {
+			/**
+			 *
+			 * @param beg
+			 * @param end
+			 * @param p
+			 * @param ret
+			 * @param
+			 */
 			void operator ()(InputIt beg, InputIt end, UnaryPredicate p, int &ret,
 								std::input_iterator_tag) {
 				auto val = std::all_of(beg, end, p);
@@ -2000,6 +2492,13 @@ namespace parallel {
 
 			}
 	};
+	/**
+	 *
+	 * @param beg
+	 * @param end
+	 * @param p
+	 * @return
+	 */
 	template<typename InputIt, typename UnaryPredicate, typename Tpolicy = LaunchPolicies<InputIt>>
 	bool all_of(InputIt beg, InputIt end, UnaryPredicate p) {
 		Tpolicy Tp;
@@ -2034,6 +2533,14 @@ namespace parallel {
 	}
 	template<typename InputIt, typename UnaryPredicate>
 	struct any_of_block {
+			/**
+			 *
+			 * @param beg
+			 * @param end
+			 * @param p
+			 * @param ret
+			 * @param
+			 */
 			void operator ()(InputIt beg, InputIt end, UnaryPredicate p, int &ret,
 								std::input_iterator_tag) {
 				auto val = std::any_of(beg, end, p);
@@ -2044,6 +2551,13 @@ namespace parallel {
 
 			}
 	};
+	/**
+	 *
+	 * @param beg
+	 * @param end
+	 * @param p
+	 * @return
+	 */
 	template<typename InputIt, typename UnaryPredicate, typename Tpolicy = LaunchPolicies<InputIt>>
 	bool any_of(InputIt beg, InputIt end, UnaryPredicate p) {
 		Tpolicy Tp;
@@ -2078,6 +2592,14 @@ namespace parallel {
 	}
 	template<typename InputIt, typename UnaryPredicate>
 	struct none_of_block {
+			/**
+			 *
+			 * @param beg
+			 * @param end
+			 * @param p
+			 * @param ret
+			 * @param
+			 */
 			void operator ()(InputIt beg, InputIt end, UnaryPredicate p, int &ret,
 								std::input_iterator_tag) {
 				auto val = std::none_of(beg, end, p);
@@ -2088,6 +2610,13 @@ namespace parallel {
 
 			}
 	};
+	/**
+	 *
+	 * @param beg
+	 * @param end
+	 * @param p
+	 * @return
+	 */
 	template<typename InputIt, typename UnaryPredicate, typename Tpolicy = LaunchPolicies<InputIt>>
 	bool none_of(InputIt beg, InputIt end, UnaryPredicate p) {
 		Tpolicy Tp;
@@ -2123,6 +2652,15 @@ namespace parallel {
 
 	template<typename InputIt1, typename InputIt2>
 	struct equal_block {
+			/**
+			 *
+			 * @param beg1
+			 * @param end1
+			 * @param beg2
+			 * @param retval
+			 * @param
+			 * @return
+			 */
 			bool operator()(InputIt1 beg1, InputIt1 end1, InputIt2 beg2, int &retval,
 							std::input_iterator_tag) {
 				auto ans = std::equal(beg1, end1, beg2);
@@ -2135,6 +2673,16 @@ namespace parallel {
 	};
 	template<typename InputIt1, typename InputIt2>
 	struct equal_block4 {
+			/**
+			 *
+			 * @param beg1
+			 * @param end1
+			 * @param beg2
+			 * @param end2
+			 * @param retval
+			 * @param
+			 * @return
+			 */
 			bool operator()(InputIt1 beg1, InputIt1 end1, InputIt2 beg2, InputIt2 end2, int &retval,
 							std::input_iterator_tag) {
 				auto ans = std::equal(beg1, end1, beg2);
@@ -2145,7 +2693,13 @@ namespace parallel {
 				return ans;
 			}
 	};
-
+	/**
+	 *
+	 * @param beg1
+	 * @param end1
+	 * @param beg2
+	 * @return
+	 */
 	template<typename InputIt, typename InputIt2, typename Tpolicy = LaunchPolicies<InputIt> >
 
 	bool equal(InputIt beg1, InputIt end1, InputIt2 beg2) {
@@ -2210,6 +2764,16 @@ namespace parallel {
 
 	template<typename InputIt1, typename InputIt2, typename BinaryPredicate>
 	struct equal_block2 {
+			/**
+			 *
+			 * @param beg1
+			 * @param end1
+			 * @param beg2
+			 * @param p
+			 * @param retval
+			 * @param
+			 * @return
+			 */
 			bool operator()(InputIt1 beg1, InputIt1 end1, InputIt2 beg2, BinaryPredicate p,
 							int &retval, std::input_iterator_tag) {
 				auto ans = std::equal(beg1, end1, beg2, p);
@@ -2220,7 +2784,14 @@ namespace parallel {
 				return ans;
 			}
 	};
-
+	/**
+	 *
+	 * @param beg1
+	 * @param end1
+	 * @param beg2
+	 * @param p
+	 * @return
+	 */
 	template<typename InputIt, typename InputIt2, typename BinaryPredicate,
 			typename Tpolicy = LaunchPolicies<InputIt> >
 
@@ -2286,6 +2857,17 @@ namespace parallel {
 
 	template<typename InputIt1, typename InputIt2, typename BinaryPredicate>
 	struct equal_block3 {
+			/**
+			 *
+			 * @param beg1
+			 * @param end1
+			 * @param beg2
+			 * @param end2
+			 * @param p
+			 * @param retval
+			 * @param
+			 * @return
+			 */
 			bool operator()(InputIt1 beg1, InputIt1 end1, InputIt2 beg2, InputIt2 end2,
 							BinaryPredicate p, int &retval, std::input_iterator_tag) {
 				auto ans = std::equal(beg1, end1, beg2, p);
@@ -2296,7 +2878,15 @@ namespace parallel {
 				return ans;
 			}
 	};
-
+	/**
+	 *
+	 * @param beg1
+	 * @param end1
+	 * @param beg2
+	 * @param end2
+	 * @param p
+	 * @return
+	 */
 	template<typename InputIt, typename InputIt2, typename BinaryPredicate,
 			typename Tpolicy = LaunchPolicies<InputIt> >
 
@@ -2336,6 +2926,14 @@ namespace parallel {
 	}
 
 	//equal version 4
+	/**
+	 *
+	 * @param beg1
+	 * @param end1
+	 * @param beg2
+	 * @param end2
+	 * @return
+	 */
 	template<typename InputIt, typename InputIt2, typename Tpolicy = LaunchPolicies<InputIt> >
 
 	bool equal(InputIt beg1, InputIt end1, InputIt2 beg2, InputIt2 end2) {
@@ -2401,6 +2999,13 @@ namespace parallel {
 
 	template<typename ForwardIt>
 	struct max_element_block {
+			/**
+			 *
+			 * @param beg
+			 * @param end
+			 * @param retval
+			 * @param
+			 */
 			void operator()(
 					ForwardIt beg,
 					ForwardIt end,
@@ -2410,7 +3015,12 @@ namespace parallel {
 				retval.second = *(retval.first);
 			}
 	};
-
+	/**
+	 *
+	 * @param beg
+	 * @param end
+	 * @return
+	 */
 	template<typename ForwardIt, typename Tpolicy = LaunchPolicies<ForwardIt> >
 
 	ForwardIt max_element(ForwardIt beg, ForwardIt end) {
@@ -2451,6 +3061,14 @@ namespace parallel {
 
 	template<typename ForwardIt, typename Comp>
 	struct max_element_block2 {
+			/**
+			 *
+			 * @param beg
+			 * @param end
+			 * @param cmp
+			 * @param retval
+			 * @param
+			 */
 			void operator()(
 					ForwardIt beg,
 					ForwardIt end,
@@ -2461,7 +3079,13 @@ namespace parallel {
 				retval.second = *(retval.first);
 			}
 	};
-
+	/**
+	 *
+	 * @param beg
+	 * @param end
+	 * @param cmp
+	 * @return
+	 */
 	template<typename ForwardIt, typename Comp, typename Tpolicy = LaunchPolicies<ForwardIt> >
 
 	ForwardIt max_element(ForwardIt beg, ForwardIt end, Comp cmp) {
@@ -2503,6 +3127,13 @@ namespace parallel {
 	// min_element
 	template<typename ForwardIt>
 	struct min_element_block {
+			/**
+			 *
+			 * @param beg
+			 * @param end
+			 * @param retval
+			 * @param
+			 */
 			void operator()(
 					ForwardIt beg,
 					ForwardIt end,
@@ -2512,7 +3143,12 @@ namespace parallel {
 				retval.second = *(retval.first);
 			}
 	};
-
+	/**
+	 *
+	 * @param beg
+	 * @param end
+	 * @return
+	 */
 	template<typename ForwardIt, typename Tpolicy = LaunchPolicies<ForwardIt> >
 
 	ForwardIt min_element(ForwardIt beg, ForwardIt end) {
@@ -2553,6 +3189,14 @@ namespace parallel {
 
 	template<typename ForwardIt, typename Comp>
 	struct min_element_block2 {
+			/**
+			 *
+			 * @param beg
+			 * @param end
+			 * @param cmp
+			 * @param retval
+			 * @param
+			 */
 			void operator()(
 					ForwardIt beg,
 					ForwardIt end,
@@ -2563,7 +3207,13 @@ namespace parallel {
 				retval.second = *(retval.first);
 			}
 	};
-
+	/**
+	 *
+	 * @param beg
+	 * @param end
+	 * @param cmp
+	 * @return
+	 */
 	template<typename ForwardIt, typename Comp, typename Tpolicy = LaunchPolicies<ForwardIt> >
 
 	ForwardIt min_element(ForwardIt beg, ForwardIt end, Comp cmp) {
@@ -2606,6 +3256,14 @@ namespace parallel {
 	//minmax_element
 	template<typename ForwardIt>
 	struct minmax_element_block {
+			/**
+			 *
+			 * @param beg
+			 * @param end
+			 * @param retmin
+			 * @param retmax
+			 * @param
+			 */
 			void operator()(
 					ForwardIt beg,
 					ForwardIt end,
@@ -2619,7 +3277,12 @@ namespace parallel {
 				retmax.second = *(ans.second);
 			}
 	};
-
+	/**
+	 *
+	 * @param beg
+	 * @param end
+	 * @return
+	 */
 	template<typename ForwardIt, typename Tpolicy = LaunchPolicies<ForwardIt> >
 
 	std::pair<ForwardIt, ForwardIt> minmax_element(ForwardIt beg, ForwardIt end) {
@@ -2761,13 +3424,14 @@ namespace parallel {
 			 * @param ret   std::vector<InputIt> holds all the iterators to the elements to be copied
 			 * @param
 			 */
-			void operator()(InputIt beg1, InputIt end1, UnaryPred p,std::vector<InputIt> &ret,std::input_iterator_tag) {
-				InputIt first =beg1;
+			void operator()(InputIt beg1, InputIt end1, UnaryPred p, std::vector<InputIt> &ret,
+							std::input_iterator_tag) {
+				InputIt first = beg1;
 				ret = std::vector<InputIt>();
 
 				while(first != end1) {
-					if (p(*first))
-					ret.push_back(first);
+					if(p(*first))
+						ret.push_back(first);
 					first++;
 				}
 			}
@@ -2780,8 +3444,8 @@ namespace parallel {
 			 * @param
 			 * @return
 			 */
-			void operator()(OutputIt beg2,std::vector<InputIt> &ret,std::input_iterator_tag) {
-				typename std::vector<InputIt>::iterator first =ret.begin();
+			void operator()(OutputIt beg2, std::vector<InputIt> &ret, std::input_iterator_tag) {
+				typename std::vector<InputIt>::iterator first = ret.begin();
 				typename std::vector<InputIt>::iterator end = ret.end();
 
 				while(first != end) {
@@ -2790,6 +3454,74 @@ namespace parallel {
 				}
 			}
 	};
+
+	/**
+		 * Helper functions for doing the copy block .
+		 */
+		template<typename InputIt, typename OutputIt>
+		struct copy_block {
+				/**
+				 *
+				 * @param beg1	input iterator to the beginning of the range of the input container
+				 * @param end1  input iterator to the end of the range of the input container
+				 * @param beg2  the beginning of the output iterator block
+				 * @param ret reference to a pair used as return values
+				 * @param
+				 */
+				void operator()(InputIt beg1, InputIt end1, OutputIt beg2, std::pair<OutputIt,bool>&ret,
+								std::input_iterator_tag) {
+					ret.first =std::copy(beg1,end1,beg2);
+					ret.second =true;
+				}
+
+
+		};
+
+		/**
+			 *
+			 * @param beg input iterator to the start of the range to be copied.
+			 * @param end input iterator to the end of the range to be copied.
+			 * @param beg2 output iterator to the beginning of the output container which must at least be
+			 * 					of length end -beg
+			 * @return
+			 */
+			template<typename InputIt, typename OutputIt,typename Tpolicy = LaunchPolicies<InputIt> >
+			OutputIt copy(InputIt beg, InputIt end, OutputIt beg2) {
+				Tpolicy Tp;
+				Tp.SetLaunchPolicies(beg, end);
+				if(!Tp.length)
+					return beg;
+				if(Tp.num_threads < 2) {
+					return std::copy(beg, end, beg2);
+
+				}
+
+				std::vector < std::thread > threads(Tp.num_threads - 1);
+				std::vector<std::pair<OutputIt,bool>> output(Tp.num_threads);
+				InputIt block_start = beg;
+				InputIt block_end = beg;
+				OutputIt block_start2 = beg2;
+
+				for(int i = 0; i < (Tp.num_threads - 1); i++) {
+
+					std::advance(block_end, Tp.block_size);
+
+					threads[i] = std::thread(copy_block<InputIt, OutputIt>(), block_start,
+							block_end, block_start2,std::ref(output[i]),
+							typename std::iterator_traits<InputIt>::iterator_category());
+
+					block_start = block_end;
+					std::advance(block_start2,Tp.block_size);
+
+				}
+				copy_block<InputIt, OutputIt>()(block_start, end,block_start2,std::ref(output[Tp.num_threads - 1]),
+						typename std::iterator_traits<InputIt>::iterator_category());
+				std::for_each(threads.begin(), threads.end(), std::mem_fn(&std::thread::join));
+				OutputIt last = (output[Tp.num_threads -1]).first;
+
+				return last;
+			}
+
 	/**
 	 *
 	 * @param beg input iterator to the start of the range to be copied.
@@ -2799,58 +3531,173 @@ namespace parallel {
 	 * @param p			Unary predicate that acts on each element of the input container if it should be copied.
 	 * @return
 	 */
-	template<typename InputIt, typename OutputIt, typename UnaryPred, typename Tpolicy = LaunchPolicies<InputIt> >
+	template<typename InputIt, typename OutputIt, typename UnaryPred,
+			typename Tpolicy = LaunchPolicies<InputIt> >
 	OutputIt copy_if(InputIt beg, InputIt end, OutputIt beg2, UnaryPred p) {
 		Tpolicy Tp;
 		Tp.SetLaunchPolicies(beg, end);
 		if(!Tp.length)
 			return beg;
 		if(Tp.num_threads < 2) {
-			return std::copy_if(beg, end,beg2,p);
+			return std::copy_if(beg, end, beg2, p);
 
 		}
 
-		std::vector<std::thread> threads(Tp.num_threads - 1);
-		std::vector<std::thread> threads2(Tp.num_threads -1);
+		std::vector < std::thread > threads(Tp.num_threads - 1);
+		std::vector < std::thread > threads2(Tp.num_threads - 1);
 		std::vector<std::vector<InputIt>> output(Tp.num_threads);
 		InputIt block_start = beg;
 		InputIt block_end = beg;
 
-		for(int i=0; i < (Tp.num_threads - 1); i++) {
+		for(int i = 0; i < (Tp.num_threads - 1); i++) {
 
 			std::advance(block_end, Tp.block_size);
 
 			threads[i] = std::thread(copy_if_block<InputIt, OutputIt, UnaryPred>(), block_start,
-					block_end,p, std::ref(output[i]),
+					block_end, p, std::ref(output[i]),
 					typename std::iterator_traits<InputIt>::iterator_category());
 
 			block_start = block_end;
 
 		}
-		copy_if_block<InputIt, OutputIt, UnaryPred>()( block_start,
-							end,p, std::ref(output[Tp.num_threads-1]),
-							typename std::iterator_traits<InputIt>::iterator_category());
+		copy_if_block<InputIt, OutputIt, UnaryPred>()(block_start, end, p,
+				std::ref(output[Tp.num_threads - 1]),
+				typename std::iterator_traits<InputIt>::iterator_category());
 		std::for_each(threads.begin(), threads.end(), std::mem_fn(&std::thread::join));
 
 		//redo for copy. not exactly load balanced but works :)
 		OutputIt block_start2 = beg2;
 		OutputIt block_end2 = beg2;
-		for(int i=0; i < (Tp.num_threads - 1); i++) {
+		for(int i = 0; i < (Tp.num_threads - 1); i++) {
 
 			std::advance(block_end2, output[i].size());
-			threads2[i] = std::thread(copy_if_block<InputIt, OutputIt, UnaryPred>(), block_start2, std::ref(output[i]),
+			threads2[i] = std::thread(copy_if_block<InputIt, OutputIt, UnaryPred>(), block_start2,
+					std::ref(output[i]),
 					typename std::iterator_traits<InputIt>::iterator_category());
 
 			block_start2 = block_end2;
 		}
-		copy_if_block<InputIt, OutputIt, UnaryPred>()( block_start2,std::ref(output[Tp.num_threads - 1]),
+		copy_if_block<InputIt, OutputIt, UnaryPred>()(block_start2,
+				std::ref(output[Tp.num_threads - 1]),
 				typename std::iterator_traits<InputIt>::iterator_category());
 		std::for_each(threads2.begin(), threads2.end(), std::mem_fn(&std::thread::join));
-		auto ans = std::accumulate(output.begin(),output.end(),0,[&](int & val, std::vector<InputIt> & vec)->int{return val+ vec.size() ;  });
+		auto ans = std::accumulate(output.begin(), output.end(), 0,
+				[&](int & val, std::vector<InputIt> & vec)->int {return val+ vec.size();});
 
-		OutputIt last =beg2;
-		std::advance(last,ans);
+		OutputIt last = beg2;
+		std::advance(last, ans);
 		return last;
+	}
+
+	/**
+	 * handles each block of the replace function.
+	 */
+	template<typename ForwardIt, typename T>
+	struct replace_block {
+			/**
+			 *
+			 * @param beg ForwardIterator to the beginning of the input container
+			 * @param end ForwardIterator to the end of the input container
+			 * @param old_value the old value to be replaced
+			 * @param new_value the new value with which we replace the old value
+			 * @param to make sure we have
+			 */
+			void operator ()(ForwardIt beg, ForwardIt end, const T& old_value, const T& new_value,
+								std::forward_iterator_tag) {
+				std::replace(beg, end, old_value, new_value);
+			}
+	};
+	/**
+	 *
+	 * @param beg Iterator to the beginning of the input container
+	 * @param end Iterator to the end of the input container
+	 * @param old_value the old value to be replaced
+	 * @param new_value the new value with which we replace the old value
+	 *
+	 */
+	template<typename ForwardIt, typename T, typename Tpolicy = LaunchPolicies<ForwardIt> >
+	void replace(ForwardIt beg, ForwardIt end, const T& old_value, const T& new_value) {
+		Tpolicy Tp;
+		Tp.SetLaunchPolicies(beg, end);
+		if(!Tp.length)
+			return;
+		if(Tp.num_threads < 2) {
+			return std::replace(beg, end, old_value, new_value);
+			return;
+		}
+
+		std::vector < std::thread > threads(Tp.num_threads - 1);
+		ForwardIt block_start = beg;
+		ForwardIt block_end = beg;
+		for(int i = 0; i < (Tp.num_threads - 1); i++) {
+
+			std::advance(block_end, Tp.block_size);
+			threads[i] = std::thread(replace_block<ForwardIt, T>(), block_start, block_end,
+					std::ref(old_value), std::ref(new_value),
+					typename std::iterator_traits<ForwardIt>::iterator_category());
+
+			block_start = block_end;
+		}
+		replace_block<ForwardIt, T>()(block_start, end, std::ref(old_value), std::ref(new_value),
+				typename std::iterator_traits<ForwardIt>::iterator_category());
+		std::for_each(threads.begin(), threads.end(), std::mem_fn(&std::thread::join));
+
+	}
+	/**
+	 * handles each block of the replace_if function.
+	 */
+	template<typename ForwardIt, typename UnaryPred, typename T>
+	struct replace_if_block {
+			/**
+			 *
+			 * @param beg ForwardIterator to the beginning of the input container
+			 * @param end ForwardIterator to the end of the input container
+			 * @param UnaryPred unary predicate that determines which element to replace
+			 * @param new_value the new value with which we replace the old value
+			 * @param to make sure we have a forward iterator
+			 */
+			void operator ()(ForwardIt beg, ForwardIt end, UnaryPred p, const T& new_value,
+								std::forward_iterator_tag) {
+				std::replace_if(beg, end, p, new_value);
+			}
+	};
+
+	/**
+	 *
+	 * @param beg Iterator to the beginning of the input container
+	 * @param end Iterator to the end of the input container
+	 * @param p unary predicate which determines what to replace if pred(val)==true.
+	 * @param new_value the new value with which we replace the old value
+	 *
+	 */
+	template<typename ForwardIt, typename UnaryPred, typename T, typename Tpolicy = LaunchPolicies<
+			ForwardIt> >
+	void replace_if(ForwardIt beg, ForwardIt end, UnaryPred p, const T& new_value) {
+		Tpolicy Tp;
+		Tp.SetLaunchPolicies(beg, end);
+		if(!Tp.length)
+			return;
+		if(Tp.num_threads < 2) {
+			std::replace_if(beg, end, p, new_value);
+			return;
+		}
+
+		std::vector < std::thread > threads(Tp.num_threads - 1);
+		ForwardIt block_start = beg;
+		ForwardIt block_end = beg;
+		for(int i = 0; i < (Tp.num_threads - 1); i++) {
+
+			std::advance(block_end, Tp.block_size);
+			threads[i] = std::thread(replace_if_block<ForwardIt, UnaryPred, T>(), block_start,
+					block_end, p, std::ref(new_value),
+					typename std::iterator_traits<ForwardIt>::iterator_category());
+
+			block_start = block_end;
+		}
+		replace_if_block<ForwardIt, UnaryPred, T>()(block_start, end, p, std::ref(new_value),
+				typename std::iterator_traits<ForwardIt>::iterator_category());
+		std::for_each(threads.begin(), threads.end(), std::mem_fn(&std::thread::join));
+
 	}
 }
 

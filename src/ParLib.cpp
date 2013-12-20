@@ -554,7 +554,26 @@ BOOST_AUTO_TEST_SUITE(MinMax)
 	BOOST_AUTO_TEST_SUITE_END()
 
 	BOOST_AUTO_TEST_SUITE(Copy)
-		BOOST_AUTO_TEST_CASE(copy_if) {
+	BOOST_AUTO_TEST_CASE(copy_test1) {
+				using namespace std;
+				vector<int> one(100);
+				iota(one.begin(), one.end(), 100);
+
+				std::vector<int> three(501);
+				std::vector<int> four(501);
+				auto val1 = std::copy(one.begin(),one.end(),three.begin());
+				//std::cout<<*val1<<std::endl;
+
+				auto val2 = parallel::copy(one.begin(),one.end(),four.begin());
+				auto val = std::equal(three.begin(), three.end(), four.begin(),
+						[](int a, int b)->bool {return a==b;});
+				//std::cout<<*val2<<std::endl;
+				//std::cout<<val<<std::endl;
+				//std::cout<<"the size of one is:"<<one.size()<<std::endl;
+
+				BOOST_CHECK(val==true  && *(val1-1) == *(val2-1));
+			}
+		BOOST_AUTO_TEST_CASE(copy_if_test1) {
 			using namespace std;
 			vector<int> one(100);
 			iota(one.begin(), one.end(), 100);
@@ -571,10 +590,39 @@ BOOST_AUTO_TEST_SUITE(MinMax)
 			//std::cout<<*val2<<std::endl;
 			//std::cout<<val<<std::endl;
 			//std::cout<<"the size of one is:"<<one.size()<<std::endl;
-			/for(auto i:four)std::cout<<i<<endl;
+
 			BOOST_CHECK(val==true && (*val1== *val2));
 		}
 	BOOST_AUTO_TEST_SUITE_END()
+
+	BOOST_AUTO_TEST_SUITE(replace)
+			BOOST_AUTO_TEST_CASE(replace_test1) {
+				using namespace std;
+				vector<int> one(1000);
+				vector<int> two(1000);
+				iota(one.begin(), one.end(), 100);
+				iota(two.begin(), two.end(), 100);
+				int val1=455;
+				int val2=5989;
+				std::replace(one.begin(),one.end(),val1,val2);
+				parallel::replace(two.begin(),two.end(),val1,val2);
+				auto val = std::equal(one.begin(),one.end(),two.begin());
+				BOOST_CHECK(val);
+			}
+	BOOST_AUTO_TEST_CASE(replace_if_test1) {
+					using namespace std;
+					vector<int> one(1000);
+					vector<int> two(1000);
+					int val2 =6945;
+					iota(one.begin(), one.end(), 100);
+					iota(two.begin(), two.end(), 100);
+					std::function<bool(int)> filt = [](int k)->bool{return k %2;};
+					std::replace_if(one.begin(),one.end(),filt,val2);
+					parallel::replace_if(two.begin(),two.end(),filt,val2);
+					auto val = std::equal(one.begin(),one.end(),two.begin());
+					BOOST_CHECK(val);
+				}
+		BOOST_AUTO_TEST_SUITE_END()
 
 	/*init_unit_test_suite(int argc, char**argv){
 	 return 0;
