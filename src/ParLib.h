@@ -71,13 +71,29 @@ namespace parallel {
 			}
 	};
 
+	/**
+	 * handles each block of the foreach function.
+	 */
 	template<typename InputIt, typename UnaryFunction>
 	struct foreach_block {
+			/**
+			 *
+			 * @param beg InputIterator to the begining of the input container
+			 * @param end InputIterator to the end of the input container
+			 * @param f Unary Function to be executed
+			 * @param  used to makesure we at least have input iterators
+			 */
 			void operator ()(InputIt beg, InputIt end, UnaryFunction f, std::input_iterator_tag) {
 				std::for_each(beg, end, f);
 			}
 	};
-
+	/**
+	 *
+	 * @param beg Iterator to the beginning of the input container
+	 * @param end Iterator to the end of the input container
+	 * @param f Unary function to be executed for each element.
+	 * @return
+	 */
 	template<typename InputIt, typename UnaryFunction, typename Tpolicy = LaunchPolicies<InputIt> >
 	UnaryFunction for_each(InputIt beg, InputIt end, UnaryFunction f) {
 		Tpolicy Tp;
@@ -104,24 +120,54 @@ namespace parallel {
 
 		return f;
 	}
-
+	/**
+	 * Helper class for each block of the transform function
+	 */
 	template<typename InputIt, typename OutputIt, typename UnaryOperator>
 	struct transform_block {
+			/**
+			 *
+			 * @param first1 Input iterator to the beginning of the block.
+			 * @param last1	Input iterator to the end of the block
+			 * @param result Output Iterator : The beginning of the output iterator
+			 * @param op	Operator which transforms elements in input container to output container.
+			 * @param
+			 */
 			void operator()(InputIt first1, InputIt last1, OutputIt result, UnaryOperator op,
 							std::input_iterator_tag) {
 				std::transform(first1, last1, result, op);
 
 			}
 	};
+	/**
+	* Helper class for each block of the transform function
+    */
 	template<typename InputIt, typename InputIt2, typename OutputIt, typename BinaryOperator>
 	struct transform_block2 {
+			/**
+			 *
+			 * @param first1 Input iterator to the beginning of the block.
+			 * @param last1	Input iterator to the end of the block
+			 * @param first2 Input iterator to the beginning of the second input container
+			 * @param result OutputIterator to the beginning of the output container.
+			 * @param op The binary operator which transforms each element of the input containers to an element of the output container
+			 * @param used to make sure we have the right input iterators
+			 * @param used to make sure we have output iterators.
+			 */
 			void operator()(InputIt first1, InputIt last1, InputIt2 first2, OutputIt result,
 							BinaryOperator op, std::input_iterator_tag, std::input_iterator_tag) {
 				std::transform(first1, last1, first2, result, op);
 
 			}
 	};
-
+	/**
+	 *
+	 * @param beg The beginning of the input container
+	 * @param end The end of the input container
+	 * @param result The beginning of the output iterator assumes that we have space end -beg in the output container
+	 * @param op the operator to be applied.
+	 * @return
+	 */
 	template<typename InputIt, typename OutputIt, typename UnaryOperator,
 			typename Tpolicy = LaunchPolicies<InputIt>>
 	OutputIt transform(InputIt beg, InputIt end, OutputIt result, UnaryOperator op) {
@@ -154,6 +200,15 @@ namespace parallel {
 		return result;
 	}
 
+	/**
+	 *
+	 * @param beg1  Input iterator to the beginning of the first input container.
+	 * @param end1	Input iterator to the end of the first container.
+	 * @param beg2	Input iterator to the beginning of the second container.
+	 * @param result Input iterator to the beginning of the output container. Assumes the output container is exactly as long as the input containers.
+	 * @param op	Binary operator on the two input elements to give an output element.
+	 * @return
+	 */
 	template<typename InputIt, typename InputIt2, typename OutputIt, typename BinaryOperator,
 			class Tpolicy = LaunchPolicies<InputIt>>
 	OutputIt transform(InputIt beg1, InputIt end1, InputIt2 beg2, OutputIt result,
@@ -2611,8 +2666,20 @@ namespace parallel {
 
 	}
 
+	/**
+	 * Helper methods for computing the minmax_element block by block
+	 */
 	template<typename ForwardIt, typename Comp>
 	struct minmax_element_block2 {
+			/**
+			 *
+			 * @param beg input iterator to the start of the range to consider in the input container.
+			 * @param end input iterator to the end of the range to consider in the input container
+			 * @param cmp the comparison function
+			 * @param retmin iterator for the min in this block
+			 * @param retmax iterator for the max in this block
+			 * @param
+			 */
 			void operator()(
 					ForwardIt beg,
 					ForwardIt end,
@@ -2627,7 +2694,13 @@ namespace parallel {
 				retmax.second = *(ans.second);
 			}
 	};
-
+	/**
+	 *
+	 * @param beg start of the range to consider for the input container.
+	 * @param end end of the range to consider in the input container
+	 * @param cmp comparison function for two elements
+	 * @return std::pair<ForwardIt,ForwardIt> a pair of iterators to the min and max element in the container
+	 */
 	template<typename ForwardIt, typename Comp, typename Tpolicy = LaunchPolicies<ForwardIt> >
 
 	std::pair<ForwardIt, ForwardIt> minmax_element(ForwardIt beg, ForwardIt end, Comp cmp) {
@@ -2675,10 +2748,19 @@ namespace parallel {
 		return std::pair<ForwardIt, ForwardIt>((*ans1).first, (*ans2).first);
 	}
 
-
+	/**
+	 * Helper functions for doing the copy_if block by block.
+	 */
 	template<typename InputIt, typename OutputIt, typename UnaryPred>
 	struct copy_if_block {
-
+			/**
+			 *
+			 * @param beg1	input iterator to the beginning of the range of the input container
+			 * @param end1  input iterator to the end of the range of the input container
+			 * @param p		unary predicate that determines if the element should be copied
+			 * @param ret   std::vector<InputIt> holds all the iterators to the elements to be copied
+			 * @param
+			 */
 			void operator()(InputIt beg1, InputIt end1, UnaryPred p,std::vector<InputIt> &ret,std::input_iterator_tag) {
 				InputIt first =beg1;
 				ret = std::vector<InputIt>();
@@ -2708,7 +2790,15 @@ namespace parallel {
 				}
 			}
 	};
-
+	/**
+	 *
+	 * @param beg input iterator to the start of the range to be copied.
+	 * @param end input iterator to the end of the range to be copied.
+	 * @param beg2 output iterator to the beginning of the output container which must at least be
+	 * 					of length end -beg
+	 * @param p			Unary predicate that acts on each element of the input container if it should be copied.
+	 * @return
+	 */
 	template<typename InputIt, typename OutputIt, typename UnaryPred, typename Tpolicy = LaunchPolicies<InputIt> >
 	OutputIt copy_if(InputIt beg, InputIt end, OutputIt beg2, UnaryPred p) {
 		Tpolicy Tp;

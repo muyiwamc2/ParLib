@@ -68,10 +68,13 @@ BOOST_AUTO_TEST_SUITE(ForEach)
 	BOOST_AUTO_TEST_CASE( foreach_test1) {
 		using namespace std;
 		vector<int> one(1000);
+		vector<int> two(1000);
 		iota(one.begin(), one.end(), 1);
+		iota(two.begin(), two.end(), 1);
 		//function<void(int&)> op = [&](int &k)->void{ one[k-1]= k*30; };
-		parallel::for_each(one.begin(), one.end(), [&](int &k)->void {one[k-1]= k*30;});
-		BOOST_CHECK(one[20] == 21 * 30);
+		std::for_each(one.begin(), one.end(), [&](int &k)->void {one[k-1]= k*30;});
+		parallel::for_each(two.begin(), two.end(), [&](int &k)->void {two[k-1]= k*30;});
+		BOOST_CHECK(std::equal(one.begin(),one.end(),two.begin()));
 
 	}
 	BOOST_AUTO_TEST_SUITE_END()
@@ -556,16 +559,19 @@ BOOST_AUTO_TEST_SUITE(MinMax)
 			vector<int> one(100);
 			iota(one.begin(), one.end(), 100);
 
-			std::vector<int> three(51);
-			std::vector<int> four(51);
+			std::vector<int> three(501);
+			std::vector<int> four(501);
 			std::function<bool(int)> filt = [](int k)->bool{return k %2;};
 			auto val1 = std::copy_if(one.begin(),one.end(),three.begin(),filt);
+			//std::cout<<*val1<<std::endl;
 			iota(one.begin(), one.end(), 100);
 			auto val2 = parallel::copy_if(one.begin(),one.end(),four.begin(),filt);
 			auto val = std::equal(three.begin(), three.end(), four.begin(),
 					[](int a, int b)->bool {return a==b;});
+			//std::cout<<*val2<<std::endl;
+			//std::cout<<val<<std::endl;
 			//std::cout<<"the size of one is:"<<one.size()<<std::endl;
-			for(auto i:four)std::cout<<i<<endl;
+			/for(auto i:four)std::cout<<i<<endl;
 			BOOST_CHECK(val==true && (*val1== *val2));
 		}
 	BOOST_AUTO_TEST_SUITE_END()
