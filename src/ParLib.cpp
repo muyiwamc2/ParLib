@@ -573,6 +573,25 @@ BOOST_AUTO_TEST_SUITE(MinMax)
 
 				BOOST_CHECK(val==true  && *(val1-1) == *(val2-1));
 			}
+	BOOST_AUTO_TEST_CASE(copy_n_test1) {
+					using namespace std;
+					vector<int> one(1000);
+					iota(one.begin(), one.end(), 100);
+
+					std::vector<int> three(1000);
+					std::vector<int> four(1000);
+					auto val1 = std::copy_n(one.begin(),800,three.begin());
+					//std::cout<<*val1<<std::endl;
+
+					auto val2 = parallel::copy_n(one.begin(),800,four.begin());
+					auto val = std::equal(three.begin(), three.end(), four.begin(),
+							[](int a, int b)->bool {return a==b;});
+					//std::cout<<*val2<<std::endl;
+					//std::cout<<val<<std::endl;
+					//std::cout<<"the size of one is:"<<one.size()<<std::endl;
+
+					BOOST_CHECK(val==true  && *(val1-1) == *(val2-1));
+				}
 		BOOST_AUTO_TEST_CASE(copy_if_test1) {
 			using namespace std;
 			vector<int> one(100);
@@ -622,6 +641,34 @@ BOOST_AUTO_TEST_SUITE(MinMax)
 					auto val = std::equal(one.begin(),one.end(),two.begin());
 					BOOST_CHECK(val);
 				}
+
+	BOOST_AUTO_TEST_CASE(replace_copy_test1) {
+					using namespace std;
+					vector<int> one(1000);
+					vector<int> two(1000);
+					vector<int> three(1000);
+					int val1=455;
+					int val2=5989;
+					iota(one.begin(), one.end(), 100);
+					auto ans2 =std::replace_copy(one.begin(),one.end(),two.begin(),val1,val2);
+					auto ans1 =parallel::replace_copy(one.begin(),one.end(),three.begin(),val1,val2);
+					auto val = std::equal(two.begin(),two.end(),three.begin());
+					BOOST_CHECK(val && *(ans1-1)==*(ans2-1));
+				}
+
+	BOOST_AUTO_TEST_CASE(replace_copy_if_test1) {
+						using namespace std;
+						vector<int> one(1000);
+						vector<int> two(1000);
+						vector<int> three(1000);
+						iota(one.begin(), one.end(), 100);
+						int val2=5989;
+						std::function<bool(int)> filt = [](int k)->bool{return k %2;};
+						auto ans2 =std::replace_copy_if(one.begin(),one.end(),two.begin(),filt,val2);
+						auto ans1 =parallel::replace_copy_if(one.begin(),one.end(),three.begin(),filt,val2);
+						auto val = std::equal(two.begin(),two.end(),three.begin());
+						BOOST_CHECK(val && *(ans1-1)==*(ans2-1));
+					}
 		BOOST_AUTO_TEST_SUITE_END()
 
 	/*init_unit_test_suite(int argc, char**argv){

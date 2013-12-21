@@ -3456,71 +3456,146 @@ namespace parallel {
 	};
 
 	/**
+	 * Helper functions for doing the copy block .
+	 */
+	template<typename InputIt, typename OutputIt>
+	struct copy_block {
+			/**
+			 *
+			 * @param beg1	input iterator to the beginning of the range of the input container
+			 * @param end1  input iterator to the end of the range of the input container
+			 * @param beg2  the beginning of the output iterator block
+			 * @param ret reference to a pair used as return values
+			 * @param
+			 */
+			void operator()(InputIt beg1, InputIt end1, OutputIt beg2,
+							std::pair<OutputIt, bool>&ret, std::input_iterator_tag) {
+				ret.first = std::copy(beg1, end1, beg2);
+				ret.second = true;
+			}
+
+	};
+
+	/**
+	 *
+	 * @param beg input iterator to the start of the range to be copied.
+	 * @param end input iterator to the end of the range to be copied.
+	 * @param beg2 output iterator to the beginning of the output container which must at least be
+	 * 					of length end -beg
+	 * @return
+	 */
+	template<typename InputIt, typename OutputIt, typename Tpolicy = LaunchPolicies<InputIt> >
+	OutputIt copy(InputIt beg, InputIt end, OutputIt beg2) {
+		Tpolicy Tp;
+		Tp.SetLaunchPolicies(beg, end);
+		if(!Tp.length)
+			return beg2;
+		if(Tp.num_threads < 2) {
+			return std::copy(beg, end, beg2);
+
+		}
+
+		std::vector < std::thread > threads(Tp.num_threads - 1);
+		std::vector<std::pair<OutputIt, bool>> output(Tp.num_threads);
+		InputIt block_start = beg;
+		InputIt block_end = beg;
+		OutputIt block_start2 = beg2;
+
+		for(int i = 0; i < (Tp.num_threads - 1); i++) {
+
+			std::advance(block_end, Tp.block_size);
+
+			threads[i] = std::thread(copy_block<InputIt, OutputIt>(), block_start, block_end,
+					block_start2, std::ref(output[i]),
+					typename std::iterator_traits<InputIt>::iterator_category());
+
+			block_start = block_end;
+			std::advance(block_start2, Tp.block_size);
+
+		}
+		copy_block<InputIt, OutputIt>()(block_start, end, block_start2,
+				std::ref(output[Tp.num_threads - 1]),
+				typename std::iterator_traits<InputIt>::iterator_category());
+		std::for_each(threads.begin(), threads.end(), std::mem_fn(&std::thread::join));
+		OutputIt last = (output[Tp.num_threads - 1]).first;
+
+		return last;
+	}
+
+
+
+	/**
 		 * Helper functions for doing the copy block .
 		 */
-		template<typename InputIt, typename OutputIt>
-		struct copy_block {
+		template<typename InputIt,typename Size, typename OutputIt>
+		struct copy_n_block {
 				/**
 				 *
 				 * @param beg1	input iterator to the beginning of the range of the input container
-				 * @param end1  input iterator to the end of the range of the input container
+				 * @param count	the number of consective copies to be made for this block.
 				 * @param beg2  the beginning of the output iterator block
 				 * @param ret reference to a pair used as return values
 				 * @param
 				 */
-				void operator()(InputIt beg1, InputIt end1, OutputIt beg2, std::pair<OutputIt,bool>&ret,
-								std::input_iterator_tag) {
-					ret.first =std::copy(beg1,end1,beg2);
-					ret.second =true;
+				void operator()(InputIt beg1, Size count,OutputIt beg2,
+								std::pair<OutputIt, bool>&ret, std::input_iterator_tag) {
+					ret.first = std::copy_n(beg1, count, beg2);
+					ret.second = true;
 				}
-
 
 		};
 
 		/**
-			 *
-			 * @param beg input iterator to the start of the range to be copied.
-			 * @param end input iterator to the end of the range to be copied.
-			 * @param beg2 output iterator to the beginning of the output container which must at least be
-			 * 					of length end -beg
-			 * @return
-			 */
-			template<typename InputIt, typename OutputIt,typename Tpolicy = LaunchPolicies<InputIt> >
-			OutputIt copy(InputIt beg, InputIt end, OutputIt beg2) {
-				Tpolicy Tp;
-				Tp.SetLaunchPolicies(beg, end);
-				if(!Tp.length)
-					return beg;
-				if(Tp.num_threads < 2) {
-					return std::copy(beg, end, beg2);
+		 *
+		 * @param beg input iterator to the start of the range to be copied.
+		 * @param end input iterator to the end of the range to be copied.
+		 * @param beg2 output iterator to the beginning of the output container which must at least be
+		 * 					of length end -beg
+		 * @return
+		 */
+		template<typename InputIt, typename Size,typename OutputIt, typename Tpolicy = LaunchPolicies<InputIt> >
+		OutputIt copy_n(InputIt beg, Size count,OutputIt beg2) {
+			Tpolicy Tp;
+			InputIt end =beg;
+			std::advance(end,count);
+			Tp.SetLaunchPolicies(beg, end);
+			if(!Tp.length)
+				return beg2;
+			if(!count)
+				return beg2;
+			if(Tp.num_threads < 2) {
+				return std::copy_n(beg, count,beg2);
 
-				}
-
-				std::vector < std::thread > threads(Tp.num_threads - 1);
-				std::vector<std::pair<OutputIt,bool>> output(Tp.num_threads);
-				InputIt block_start = beg;
-				InputIt block_end = beg;
-				OutputIt block_start2 = beg2;
-
-				for(int i = 0; i < (Tp.num_threads - 1); i++) {
-
-					std::advance(block_end, Tp.block_size);
-
-					threads[i] = std::thread(copy_block<InputIt, OutputIt>(), block_start,
-							block_end, block_start2,std::ref(output[i]),
-							typename std::iterator_traits<InputIt>::iterator_category());
-
-					block_start = block_end;
-					std::advance(block_start2,Tp.block_size);
-
-				}
-				copy_block<InputIt, OutputIt>()(block_start, end,block_start2,std::ref(output[Tp.num_threads - 1]),
-						typename std::iterator_traits<InputIt>::iterator_category());
-				std::for_each(threads.begin(), threads.end(), std::mem_fn(&std::thread::join));
-				OutputIt last = (output[Tp.num_threads -1]).first;
-
-				return last;
 			}
+
+			std::vector < std::thread > threads(Tp.num_threads - 1);
+			std::vector<std::pair<OutputIt, bool>> output(Tp.num_threads);
+			InputIt block_start = beg;
+			InputIt block_end = beg;
+			OutputIt block_start2 = beg2;
+
+			for(int i = 0; i < (Tp.num_threads - 1); i++) {
+
+				std::advance(block_end, Tp.block_size);
+				Size cnt = static_cast<Size>((block_end -block_start));
+				threads[i] = std::thread(copy_n_block<InputIt,Size, OutputIt>(), block_start,cnt,
+						block_start2, std::ref(output[i]),
+						typename std::iterator_traits<InputIt>::iterator_category());
+
+				block_start = block_end;
+				std::advance(block_start2, Tp.block_size);
+
+			}
+			Size cnt2 = static_cast<Size>(end -block_start);
+			copy_n_block<InputIt,Size, OutputIt>()(block_start,cnt2, block_start2,
+					std::ref(output[Tp.num_threads - 1]),
+					typename std::iterator_traits<InputIt>::iterator_category());
+			std::for_each(threads.begin(), threads.end(), std::mem_fn(&std::thread::join));
+			OutputIt last = (output[Tp.num_threads - 1]).first;
+
+			return last;
+		}
+
 
 	/**
 	 *
@@ -3537,7 +3612,7 @@ namespace parallel {
 		Tpolicy Tp;
 		Tp.SetLaunchPolicies(beg, end);
 		if(!Tp.length)
-			return beg;
+			return beg2;
 		if(Tp.num_threads < 2) {
 			return std::copy_if(beg, end, beg2, p);
 
@@ -3622,7 +3697,7 @@ namespace parallel {
 		if(!Tp.length)
 			return;
 		if(Tp.num_threads < 2) {
-			return std::replace(beg, end, old_value, new_value);
+			std::replace(beg, end, old_value, new_value);
 			return;
 		}
 
@@ -3697,6 +3772,140 @@ namespace parallel {
 		replace_if_block<ForwardIt, UnaryPred, T>()(block_start, end, p, std::ref(new_value),
 				typename std::iterator_traits<ForwardIt>::iterator_category());
 		std::for_each(threads.begin(), threads.end(), std::mem_fn(&std::thread::join));
+
+	}
+
+	/**
+	 * handles each block of the replace_copy function.
+	 */
+	template<typename InputIt, typename OutputIt, typename T>
+	struct replace_copy_block {
+			/**
+			 *
+			 * @param beg InputIterator to the beginning of the input container
+			 * @param end InputIterator to the end of the input container
+			 * @param beg2 OutputIterator to the beginning of the output container
+			 * @param old_value the old value to be replaced
+			 * @param new_value the new value with which we replace the old value
+			 * @param to make sure we have an input iterator in the container.
+			 */
+			void operator ()(InputIt beg, InputIt end, OutputIt beg2, const T& old_value,
+								const T& new_value, std::pair<OutputIt, bool> &ret,
+								std::input_iterator_tag) {
+				ret.first = std::replace_copy(beg, end, beg2, old_value, new_value);
+				ret.second = true;
+			}
+	};
+
+	/**
+	 *
+	 * @param beg Iterator to the beginning of the input container
+	 * @param end Iterator to the end of the input container
+	 * @param beg2 Iterator to the beginning of the output container
+	 * @param old_value the old value to be replaced when copied
+	 * @param new_value the new value with which we replace the old value
+	 * @returns OutputIt
+	 */
+	template<typename InputIt, typename OutputIt, typename T, typename Tpolicy = LaunchPolicies<
+			InputIt> >
+	OutputIt replace_copy(InputIt beg, InputIt end, OutputIt beg2, const T& old_value,
+							const T& new_value) {
+		Tpolicy Tp;
+		Tp.SetLaunchPolicies(beg, end);
+		if(!Tp.length)
+			return beg2;
+		if(Tp.num_threads < 2) {
+			return std::replace_copy(beg, end, beg2, old_value, new_value);
+
+		}
+
+		std::vector < std::thread > threads(Tp.num_threads - 1);
+		std::vector<std::pair<OutputIt, bool>> output(Tp.num_threads);
+		InputIt block_start = beg;
+		InputIt block_end = beg;
+		OutputIt block_start2 = beg2;
+		for(int i = 0; i < (Tp.num_threads - 1); i++) {
+
+			std::advance(block_end, Tp.block_size);
+			threads[i] = std::thread(replace_copy_block<InputIt, OutputIt, T>(), block_start,
+					block_end, block_start2, std::ref(old_value), std::ref(new_value),
+					std::ref(output[i]),
+					typename std::iterator_traits<InputIt>::iterator_category());
+			std::advance(block_start2, Tp.block_size);
+			block_start = block_end;
+		}
+		replace_copy_block<InputIt, OutputIt, T>()(block_start, end, block_start2,
+				std::ref(old_value), std::ref(new_value), std::ref(output[Tp.num_threads - 1]),
+				typename std::iterator_traits<InputIt>::iterator_category());
+		std::for_each(threads.begin(), threads.end(), std::mem_fn(&std::thread::join));
+		return (output[Tp.num_threads - 1]).first;
+
+	}
+
+	/**
+	 * handles each block of the replace_copy function.
+	 */
+	template<typename InputIt, typename OutputIt, typename UnaryPred, typename T>
+	struct replace_copy_if_block {
+			/**
+			 *
+			 * @param beg InputIterator to the beginning of the input container
+			 * @param end InputIterator to the end of the input container
+			 * @param beg2 OutputIterator to the beginning of the output container
+			 * @param p	unary predicate determining if the value being copied should be replaced
+			 * @param new_value the new value with which we replace the old value when copied.
+			 * @param to make sure we have an input iterator in the container.
+			 */
+			void operator ()(InputIt beg, InputIt end, OutputIt beg2, UnaryPred p,
+								const T& new_value, std::pair<OutputIt, bool> &ret,
+								std::input_iterator_tag) {
+				ret.first = std::replace_copy_if(beg, end, beg2, p, new_value);
+				ret.second = true;
+			}
+	};
+
+	/**
+	 *
+	 * @param beg Iterator to the beginning of the input container
+	 * @param end Iterator to the end of the input container
+	 * @param beg2 Iterator to the beginning of the output container
+	 * @param p unary predicate that determines which element needs to be replaced when copied.
+	 * @param new_value the new value with which we replace the old value
+	 * @returns OutputIt
+	 */
+	template<typename InputIt, typename OutputIt, typename UnaryPred, typename T,
+			typename Tpolicy = LaunchPolicies<InputIt> >
+	OutputIt replace_copy_if(InputIt beg, InputIt end, OutputIt beg2, UnaryPred p,
+								const T& new_value) {
+		Tpolicy Tp;
+		Tp.SetLaunchPolicies(beg, end);
+		if(!Tp.length)
+			return beg2;
+		if(Tp.num_threads < 2) {
+			return std::replace_copy_if(beg, end, beg2, p, new_value);
+
+		}
+
+		std::vector < std::thread > threads(Tp.num_threads - 1);
+		std::vector<std::pair<OutputIt, bool>> output(Tp.num_threads);
+		InputIt block_start = beg;
+		InputIt block_end = beg;
+		OutputIt block_start2 = beg2;
+		for(int i = 0; i < (Tp.num_threads - 1); i++) {
+
+			std::advance(block_end, Tp.block_size);
+			threads[i] = std::thread(replace_copy_if_block<InputIt, OutputIt, UnaryPred, T>(),
+					block_start, block_end, block_start2, p, std::ref(new_value),
+					std::ref(output[i]),
+					typename std::iterator_traits<InputIt>::iterator_category());
+			std::advance(block_start2, Tp.block_size);
+			block_start = block_end;
+		}
+		replace_copy_if_block<InputIt, OutputIt, UnaryPred, T>()(block_start, end, block_start2, p,
+				std::ref(new_value), std::ref(output[Tp.num_threads - 1]),
+				typename std::iterator_traits<InputIt>::iterator_category());
+		std::for_each(threads.begin(), threads.end(), std::mem_fn(&std::thread::join));
+		return (output[Tp.num_threads - 1]).first;
 
 	}
 }
