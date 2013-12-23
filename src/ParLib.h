@@ -24,6 +24,8 @@
 #include<condition_variable>
 #include<iostream>
 
+
+
 namespace parallel {
 	enum class ThreadTypes {
 		standard, async
@@ -414,6 +416,121 @@ namespace parallel {
 		return ans->first;
 
 	}
+
+	/**
+	 * Helper class for generate function
+	 */
+	template<typename ForwardIt, typename Generator>
+		struct generate_block {
+				/**
+				 *
+				 * @param beg iterator to the beginning of the block for the input container.
+				 * @param end iterator to the end of the block for the input container
+				 * @param g Generator function used in *ForwardIt = g()
+				 * @param make sure that the iterator is a forward iterator
+				 */
+				void operator()(ForwardIt beg, ForwardIt end, Generator g,
+								std::forward_iterator_tag) {
+					std::generate(beg, end, g);
+				}
+		};
+
+	/**
+		 * Helper class for generate_n function
+		 */
+		template<typename OutputIt,typename Size, typename Generator>
+			struct generate_n_block {
+					/**
+					 *
+					 * @param beg beginning iterator to the input container
+					 * @param cnt counter for the block , how many elements to generate for.
+					 * @param g Generator function used in *ForwardIt = g()
+
+					 */
+					void operator()(OutputIt beg, Size cnt, Generator g,std::pair<OutputIt,bool> &ret) {
+
+						ret.first=std::generate_n(beg, cnt, g);
+						ret.second = true;
+					}
+			};
+
+	/**
+		 *
+		 * @param beg Iterator to the beginning of the input container
+		 * @param end Iterator to the end of the input container
+		 * @param g function to be executed to fill every element.
+		 * @return
+		 */
+		template<typename ForwardIt, typename Generator, typename Tpolicy = LaunchPolicies<ForwardIt> >
+		void generate(ForwardIt beg, ForwardIt end, Generator g) {
+			Tpolicy Tp;
+			Tp.SetLaunchPolicies(beg, end);
+			if(!Tp.length)
+				return ;
+			if(Tp.num_threads < 2){
+				std::generate(beg, end, g);
+				return;
+			}
+
+			std::vector < std::thread > threads(Tp.num_threads - 1);
+			ForwardIt block_start = beg;
+			ForwardIt block_end = beg;
+			for(int i = 0; i < (Tp.num_threads - 1); i++) {
+
+				std::advance(block_end, Tp.block_size);
+				threads[i] = std::thread(generate_block<ForwardIt, Generator>(), block_start,
+						block_end, g, typename std::iterator_traits<ForwardIt>::iterator_category());
+
+				block_start = block_end;
+			}
+			generate_block<ForwardIt, Generator>()(block_start, end, g,
+					typename std::iterator_traits<ForwardIt>::iterator_category());
+			std::for_each(threads.begin(), threads.end(), std::mem_fn(&std::thread::join));
+
+
+		}
+
+		/**
+				 *
+				 * @param beg Iterator to the beginning of the input container
+				 * @param count how many elements we have to generate for.
+				 * @param g function to be executed to fill every element.
+				 * @return
+				 */
+				template<typename OutputIt, typename Size, typename Generator, typename Tpolicy = LaunchPolicies<OutputIt> >
+				OutputIt generate_n(OutputIt beg, Size count, Generator g) {
+					OutputIt end =beg;
+					std::advance(end,count);
+					if(count<=0) return beg;
+					Tpolicy Tp;
+
+					Tp.SetLaunchPolicies(beg, end);
+					if(!Tp.length)
+						return beg;
+					if(Tp.num_threads < 2)
+						return std::generate_n(beg, end, g);
+
+					std::vector < std::thread > threads(Tp.num_threads - 1);
+					std::vector <std::pair<OutputIt,bool>> output(Tp.num_threads);
+					OutputIt block_start = beg;
+					OutputIt block_end = beg;
+					for(int i = 0; i < (Tp.num_threads - 1); i++) {
+
+						std::advance(block_end, Tp.block_size);
+						Size cnt = static_cast<Size>(std::distance(block_start,block_end));
+						threads[i] = std::thread(generate_n_block<OutputIt, Size,Generator>(), block_start,cnt,
+								 g, std::ref(output[i]));
+
+						block_start = block_end;
+					}
+					Size cnt = static_cast<Size>(std::distance(block_start,end));
+					generate_n_block<OutputIt, Size,Generator>()(block_start, cnt, g, std::ref(output[Tp.num_threads-1]));
+					std::for_each(threads.begin(), threads.end(), std::mem_fn(&std::thread::join));
+
+					return (output[Tp.num_threads-1]).first;
+
+
+				}
 	template<typename InputIt, typename T>
 	struct accumulate_block {
 			/**
