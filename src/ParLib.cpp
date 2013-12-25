@@ -8,9 +8,11 @@
 #define BOOST_TEST_DYN_LINK
 #define BOOST_TEST_MODULE ParLibTest
 #include <algorithm>
+#include <algorithm>
 #include <numeric>
 #include <iostream>
 #include <functional>
+
 #include "ParLib.h"
 //#include <boost/test/minimal.hpp>
 #include <boost/test/included/unit_test.hpp>
@@ -62,6 +64,33 @@ BOOST_AUTO_TEST_SUITE(Transform)
 				//for(auto &i:two)std::cout<<i<<std::endl;
 				BOOST_CHECK(std::equal(one.begin(),one.end(),two.begin()));
 			}
+	BOOST_AUTO_TEST_CASE( generate_test1 ) {
+
+				std::vector<int> one(1000);
+				std::vector<double> two(1000);
+				std::iota(one.begin(),one.end(),500);
+				std::iota(two.begin(),two.end(),500);
+				std::srand(0);
+				std::function<int(void)>  f =[&](void)->int{return 9;} ;
+				std::generate(one.begin(),one.end(), f);
+				parallel::generate(two.begin(), two.end(),f);
+
+				BOOST_CHECK(std::equal(one.begin(),one.end(),two.begin()));
+			}
+
+		BOOST_AUTO_TEST_CASE( generate_n_test1 ) {
+					std::size_t val=500;
+					std::vector<int> one(1000);
+					std::vector<int> two(1000);
+					std::function<int(void)>  f =[&](void)->int{return 9;} ;
+					auto it1 =std::generate_n(one.begin(),val, f);
+
+					auto it2 =parallel::generate_n(two.begin(),val,f);
+					//it1++;
+					//it2++;
+					//for(auto &i:two)std::cout<<i<<std::endl;
+					BOOST_CHECK(std::equal(one.begin(),one.end(),two.begin()) && *it1==*it2);
+				}
 	BOOST_AUTO_TEST_SUITE_END()
 
 BOOST_AUTO_TEST_SUITE(ForEach)
