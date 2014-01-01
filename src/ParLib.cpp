@@ -699,7 +699,61 @@ BOOST_AUTO_TEST_SUITE(MinMax)
 						BOOST_CHECK(val && *(ans1-1)==*(ans2-1));
 					}
 		BOOST_AUTO_TEST_SUITE_END()
+		BOOST_AUTO_TEST_SUITE(functions_based_on_sorting_test)
+					BOOST_AUTO_TEST_CASE(is_sorted_test1) {
+						using namespace std;
+						vector<int> one(1000);
+						vector<int> two(1000);
+						iota(one.begin(), one.end(), 100);
+						iota(two.begin(), two.end(), 100);
 
+						auto val1 =std::is_sorted(one.begin(),one.end());
+						auto val2 =parallel::is_sorted(two.begin(),two.end());
+
+						BOOST_CHECK(val1==val2);
+					}
+		BOOST_AUTO_TEST_CASE(is_sorted_test2) {
+								using namespace std;
+								vector<int> one(1000);
+								vector<int> two(1000);
+								iota(one.begin(), one.end(), 100);
+								iota(two.begin(), two.end(), 100);
+								std::function<bool(int,int)> f =[](int a, int b)->bool{return a<b ;};
+								auto val1 =std::is_sorted(one.begin(),one.end(),f);
+								auto val2 =parallel::is_sorted(two.begin(),two.end(),f);
+
+								BOOST_CHECK(val1==val2);
+							}
+
+		BOOST_AUTO_TEST_CASE(is_sorted_until_test1) {
+								using namespace std;
+								vector<int> one(100);
+								vector<int> two(100);
+								iota(one.begin(), one.end(), 100);
+								iota(two.begin(), two.end(), 100);
+								one[50]=9;
+								two[50]=9;
+								auto val1 =std::is_sorted_until(one.begin(),one.end());
+								auto val2 =parallel::is_sorted_until(two.begin(),two.end());
+								//std::cout<<*val1<<std::endl;
+								//std::cout<<*val2<<std::endl;
+								BOOST_CHECK((*val1)== (*val2));
+							}
+				BOOST_AUTO_TEST_CASE(is_sorted_until_test2) {
+										using namespace std;
+										vector<int> one(100);
+										vector<int> two(100);
+										iota(one.begin(), one.end(), 100);
+										iota(two.begin(), two.end(), 100);
+										one[50]=9;
+										two[50]=9;
+										std::function<bool(int,int)> f =[](int a, int b)->bool{return a<b ;};
+										auto val1 =std::is_sorted_until(one.begin(),one.end(),f);
+										auto val2 =parallel::is_sorted_until(two.begin(),two.end(),f);
+
+										BOOST_CHECK((*val1)== (*val2));
+									}
+		BOOST_AUTO_TEST_SUITE_END()
 	/*init_unit_test_suite(int argc, char**argv){
 	 return 0;
 	 }*/
