@@ -1,10 +1,21 @@
-//============================================================================
-// Name        : ParLib.cpp
-// Author      : Olumuyiwa
-// Version     :
-// Copyright   : Your copyright notice
-// Description : Hello World in C++, Ansi-style
-//============================================================================
+/*
+ Copyright (c) 2013, Olumuyiwa Oluwasanmi
+ All rights reserved.
+
+ Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
+
+ 1. Redistributions of source code must retain the above copyright notice, this list of conditions and the following disclaimer.
+
+ 2. Redistributions in binary form must reproduce the above copyright notice, this list of conditions and the following disclaimer in the documentation and/or other materials provided with the distribution.
+
+ 3. Neither the name of the Olumuyiwa Oluwasanmi nor the names of its contributors may be used to endorse or promote products derived from this software without specific prior written permission.
+
+ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND
+ FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+ DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+ ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
+ EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
 #define BOOST_TEST_DYN_LINK
 #define BOOST_TEST_MODULE ParLibTest
 #include <algorithm>
@@ -43,54 +54,54 @@ BOOST_AUTO_TEST_SUITE(Transform)
 	}
 
 	BOOST_AUTO_TEST_CASE( fill_test ) {
-			int val =20;
-			std::vector<int> one(1000);
-			std::vector<double> two(1000);
-			std::fill(one.begin(),one.begin()+300, val);
-			parallel::fill(two.begin(), two.begin()+300,val);
+		int val = 20;
+		std::vector<int> one(1000);
+		std::vector<double> two(1000);
+		std::fill(one.begin(), one.begin() + 300, val);
+		parallel::fill(two.begin(), two.begin() + 300, val);
 
-			BOOST_CHECK(std::equal(one.begin(),one.end(),two.begin()));
-		}
+		BOOST_CHECK(std::equal(one.begin(), one.end(), two.begin()));
+	}
 
 	BOOST_AUTO_TEST_CASE( fill_n_test1 ) {
-				int val =20;
-				int val2=99;
-				std::vector<int> one(100);
-				std::vector<int> two(100);
-				auto it1 =std::fill_n(one.begin(),val2, val);
-				auto it2 =parallel::fill_n(two.begin(),val2,val);
-				it1++;
-				it2++;
-				//for(auto &i:two)std::cout<<i<<std::endl;
-				BOOST_CHECK(std::equal(one.begin(),one.end(),two.begin()));
-			}
+		int val = 20;
+		int val2 = 99;
+		std::vector<int> one(100);
+		std::vector<int> two(100);
+		auto it1 = std::fill_n(one.begin(), val2, val);
+		auto it2 = parallel::fill_n(two.begin(), val2, val);
+		it1++;
+		it2++;
+		//for(auto &i:two)std::cout<<i<<std::endl;
+		BOOST_CHECK(std::equal(one.begin(), one.end(), two.begin()));
+	}
 	BOOST_AUTO_TEST_CASE( generate_test1 ) {
 
-				std::vector<int> one(1000);
-				std::vector<double> two(1000);
-				std::iota(one.begin(),one.end(),500);
-				std::iota(two.begin(),two.end(),500);
-				std::srand(0);
-				std::function<int(void)>  f =[&](void)->int{return 9;} ;
-				std::generate(one.begin(),one.end(), f);
-				parallel::generate(two.begin(), two.end(),f);
+		std::vector<int> one(1000);
+		std::vector<double> two(1000);
+		std::iota(one.begin(), one.end(), 500);
+		std::iota(two.begin(), two.end(), 500);
+		std::srand(0);
+		std::function<int(void)> f = [&](void)->int {return 9;};
+		std::generate(one.begin(), one.end(), f);
+		parallel::generate(two.begin(), two.end(), f);
 
-				BOOST_CHECK(std::equal(one.begin(),one.end(),two.begin()));
-			}
+		BOOST_CHECK(std::equal(one.begin(), one.end(), two.begin()));
+	}
 
-		BOOST_AUTO_TEST_CASE( generate_n_test1 ) {
-					std::size_t val=500;
-					std::vector<int> one(1000);
-					std::vector<int> two(1000);
-					std::function<int(void)>  f =[&](void)->int{return 9;} ;
-					auto it1 =std::generate_n(one.begin(),val, f);
+	BOOST_AUTO_TEST_CASE( generate_n_test1 ) {
+		std::size_t val = 500;
+		std::vector<int> one(1000);
+		std::vector<int> two(1000);
+		std::function<int(void)> f = [&](void)->int {return 9;};
+		auto it1 = std::generate_n(one.begin(), val, f);
 
-					auto it2 =parallel::generate_n(two.begin(),val,f);
-					//it1++;
-					//it2++;
-					//for(auto &i:two)std::cout<<i<<std::endl;
-					BOOST_CHECK(std::equal(one.begin(),one.end(),two.begin()) && *it1==*it2);
-				}
+		auto it2 = parallel::generate_n(two.begin(), val, f);
+		//it1++;
+		//it2++;
+		//for(auto &i:two)std::cout<<i<<std::endl;
+		BOOST_CHECK(std::equal(one.begin(), one.end(), two.begin()) && *it1 == *it2);
+	}
 	BOOST_AUTO_TEST_SUITE_END()
 
 BOOST_AUTO_TEST_SUITE(ForEach)
@@ -103,7 +114,7 @@ BOOST_AUTO_TEST_SUITE(ForEach)
 		//function<void(int&)> op = [&](int &k)->void{ one[k-1]= k*30; };
 		std::for_each(one.begin(), one.end(), [&](int &k)->void {one[k-1]= k*30;});
 		parallel::for_each(two.begin(), two.end(), [&](int &k)->void {two[k-1]= k*30;});
-		BOOST_CHECK(std::equal(one.begin(),one.end(),two.begin()));
+		BOOST_CHECK(std::equal(one.begin(), one.end(), two.begin()));
 
 	}
 	BOOST_AUTO_TEST_SUITE_END()
@@ -582,178 +593,207 @@ BOOST_AUTO_TEST_SUITE(MinMax)
 	}
 	BOOST_AUTO_TEST_SUITE_END()
 
-	BOOST_AUTO_TEST_SUITE(Copy)
+BOOST_AUTO_TEST_SUITE(Copy)
 	BOOST_AUTO_TEST_CASE(copy_test1) {
-				using namespace std;
-				vector<int> one(100);
-				iota(one.begin(), one.end(), 100);
+		using namespace std;
+		vector<int> one(100);
+		iota(one.begin(), one.end(), 100);
 
-				std::vector<int> three(501);
-				std::vector<int> four(501);
-				auto val1 = std::copy(one.begin(),one.end(),three.begin());
-				//std::cout<<*val1<<std::endl;
+		std::vector<int> three(501);
+		std::vector<int> four(501);
+		auto val1 = std::copy(one.begin(), one.end(), three.begin());
+		//std::cout<<*val1<<std::endl;
 
-				auto val2 = parallel::copy(one.begin(),one.end(),four.begin());
-				auto val = std::equal(three.begin(), three.end(), four.begin(),
-						[](int a, int b)->bool {return a==b;});
-				//std::cout<<*val2<<std::endl;
-				//std::cout<<val<<std::endl;
-				//std::cout<<"the size of one is:"<<one.size()<<std::endl;
+		auto val2 = parallel::copy(one.begin(), one.end(), four.begin());
+		auto val = std::equal(three.begin(), three.end(), four.begin(),
+				[](int a, int b)->bool {return a==b;});
+		//std::cout<<*val2<<std::endl;
+		//std::cout<<val<<std::endl;
+		//std::cout<<"the size of one is:"<<one.size()<<std::endl;
 
-				BOOST_CHECK(val==true  && *(val1-1) == *(val2-1));
-			}
+		BOOST_CHECK(val == true && *(val1 - 1) == *(val2 - 1));
+	}
 	BOOST_AUTO_TEST_CASE(copy_n_test1) {
-					using namespace std;
-					vector<int> one(1000);
-					iota(one.begin(), one.end(), 100);
+		using namespace std;
+		vector<int> one(1000);
+		iota(one.begin(), one.end(), 100);
 
-					std::vector<int> three(1000);
-					std::vector<int> four(1000);
-					auto val1 = std::copy_n(one.begin(),800,three.begin());
-					//std::cout<<*val1<<std::endl;
+		std::vector<int> three(1000);
+		std::vector<int> four(1000);
+		auto val1 = std::copy_n(one.begin(), 800, three.begin());
+		//std::cout<<*val1<<std::endl;
 
-					auto val2 = parallel::copy_n(one.begin(),800,four.begin());
-					auto val = std::equal(three.begin(), three.end(), four.begin(),
-							[](int a, int b)->bool {return a==b;});
-					//std::cout<<*val2<<std::endl;
-					//std::cout<<val<<std::endl;
-					//std::cout<<"the size of one is:"<<one.size()<<std::endl;
+		auto val2 = parallel::copy_n(one.begin(), 800, four.begin());
+		auto val = std::equal(three.begin(), three.end(), four.begin(),
+				[](int a, int b)->bool {return a==b;});
+		//std::cout<<*val2<<std::endl;
+		//std::cout<<val<<std::endl;
+		//std::cout<<"the size of one is:"<<one.size()<<std::endl;
 
-					BOOST_CHECK(val==true  && *(val1-1) == *(val2-1));
-				}
-		BOOST_AUTO_TEST_CASE(copy_if_test1) {
-			using namespace std;
-			vector<int> one(100);
-			iota(one.begin(), one.end(), 100);
+		BOOST_CHECK(val == true && *(val1 - 1) == *(val2 - 1));
+	}
+	BOOST_AUTO_TEST_CASE(copy_if_test1) {
+		using namespace std;
+		vector<int> one(100);
+		iota(one.begin(), one.end(), 100);
 
-			std::vector<int> three(501);
-			std::vector<int> four(501);
-			std::function<bool(int)> filt = [](int k)->bool{return k %2;};
-			auto val1 = std::copy_if(one.begin(),one.end(),three.begin(),filt);
-			//std::cout<<*val1<<std::endl;
-			iota(one.begin(), one.end(), 100);
-			auto val2 = parallel::copy_if(one.begin(),one.end(),four.begin(),filt);
-			auto val = std::equal(three.begin(), three.end(), four.begin(),
-					[](int a, int b)->bool {return a==b;});
-			//std::cout<<*val2<<std::endl;
-			//std::cout<<val<<std::endl;
-			//std::cout<<"the size of one is:"<<one.size()<<std::endl;
+		std::vector<int> three(501);
+		std::vector<int> four(501);
+		std::function<bool(int)> filt = [](int k)->bool {return k %2;};
+		auto val1 = std::copy_if(one.begin(), one.end(), three.begin(), filt);
+		//std::cout<<*val1<<std::endl;
+		iota(one.begin(), one.end(), 100);
+		auto val2 = parallel::copy_if(one.begin(), one.end(), four.begin(), filt);
+		auto val = std::equal(three.begin(), three.end(), four.begin(),
+				[](int a, int b)->bool {return a==b;});
+		//std::cout<<*val2<<std::endl;
+		//std::cout<<val<<std::endl;
+		//std::cout<<"the size of one is:"<<one.size()<<std::endl;
 
-			BOOST_CHECK(val==true && (*val1== *val2));
-		}
+		BOOST_CHECK(val == true && (*val1 == *val2));
+	}
 	BOOST_AUTO_TEST_SUITE_END()
 
-	BOOST_AUTO_TEST_SUITE(replace)
-			BOOST_AUTO_TEST_CASE(replace_test1) {
-				using namespace std;
-				vector<int> one(1000);
-				vector<int> two(1000);
-				iota(one.begin(), one.end(), 100);
-				iota(two.begin(), two.end(), 100);
-				int val1=455;
-				int val2=5989;
-				std::replace(one.begin(),one.end(),val1,val2);
-				parallel::replace(two.begin(),two.end(),val1,val2);
-				auto val = std::equal(one.begin(),one.end(),two.begin());
-				BOOST_CHECK(val);
-			}
+BOOST_AUTO_TEST_SUITE(replace)
+	BOOST_AUTO_TEST_CASE(replace_test1) {
+		using namespace std;
+		vector<int> one(1000);
+		vector<int> two(1000);
+		iota(one.begin(), one.end(), 100);
+		iota(two.begin(), two.end(), 100);
+		int val1 = 455;
+		int val2 = 5989;
+		std::replace(one.begin(), one.end(), val1, val2);
+		parallel::replace(two.begin(), two.end(), val1, val2);
+		auto val = std::equal(one.begin(), one.end(), two.begin());
+		BOOST_CHECK(val);
+	}
 	BOOST_AUTO_TEST_CASE(replace_if_test1) {
-					using namespace std;
-					vector<int> one(1000);
-					vector<int> two(1000);
-					int val2 =6945;
-					iota(one.begin(), one.end(), 100);
-					iota(two.begin(), two.end(), 100);
-					std::function<bool(int)> filt = [](int k)->bool{return k %2;};
-					std::replace_if(one.begin(),one.end(),filt,val2);
-					parallel::replace_if(two.begin(),two.end(),filt,val2);
-					auto val = std::equal(one.begin(),one.end(),two.begin());
-					BOOST_CHECK(val);
-				}
+		using namespace std;
+		vector<int> one(1000);
+		vector<int> two(1000);
+		int val2 = 6945;
+		iota(one.begin(), one.end(), 100);
+		iota(two.begin(), two.end(), 100);
+		std::function<bool(int)> filt = [](int k)->bool {return k %2;};
+		std::replace_if(one.begin(), one.end(), filt, val2);
+		parallel::replace_if(two.begin(), two.end(), filt, val2);
+		auto val = std::equal(one.begin(), one.end(), two.begin());
+		BOOST_CHECK(val);
+	}
 
 	BOOST_AUTO_TEST_CASE(replace_copy_test1) {
-					using namespace std;
-					vector<int> one(1000);
-					vector<int> two(1000);
-					vector<int> three(1000);
-					int val1=455;
-					int val2=5989;
-					iota(one.begin(), one.end(), 100);
-					auto ans2 =std::replace_copy(one.begin(),one.end(),two.begin(),val1,val2);
-					auto ans1 =parallel::replace_copy(one.begin(),one.end(),three.begin(),val1,val2);
-					auto val = std::equal(two.begin(),two.end(),three.begin());
-					BOOST_CHECK(val && *(ans1-1)==*(ans2-1));
-				}
+		using namespace std;
+		vector<int> one(1000);
+		vector<int> two(1000);
+		vector<int> three(1000);
+		int val1 = 455;
+		int val2 = 5989;
+		iota(one.begin(), one.end(), 100);
+		auto ans2 = std::replace_copy(one.begin(), one.end(), two.begin(), val1, val2);
+		auto ans1 = parallel::replace_copy(one.begin(), one.end(), three.begin(), val1, val2);
+		auto val = std::equal(two.begin(), two.end(), three.begin());
+		BOOST_CHECK(val && *(ans1 - 1) == *(ans2 - 1));
+	}
 
 	BOOST_AUTO_TEST_CASE(replace_copy_if_test1) {
-						using namespace std;
-						vector<int> one(1000);
-						vector<int> two(1000);
-						vector<int> three(1000);
-						iota(one.begin(), one.end(), 100);
-						int val2=5989;
-						std::function<bool(int)> filt = [](int k)->bool{return k %2;};
-						auto ans2 =std::replace_copy_if(one.begin(),one.end(),two.begin(),filt,val2);
-						auto ans1 =parallel::replace_copy_if(one.begin(),one.end(),three.begin(),filt,val2);
-						auto val = std::equal(two.begin(),two.end(),three.begin());
-						BOOST_CHECK(val && *(ans1-1)==*(ans2-1));
-					}
-		BOOST_AUTO_TEST_SUITE_END()
-		BOOST_AUTO_TEST_SUITE(functions_based_on_sorting_test)
-					BOOST_AUTO_TEST_CASE(is_sorted_test1) {
-						using namespace std;
-						vector<int> one(1000);
-						vector<int> two(1000);
-						iota(one.begin(), one.end(), 100);
-						iota(two.begin(), two.end(), 100);
+		using namespace std;
+		vector<int> one(1000);
+		vector<int> two(1000);
+		vector<int> three(1000);
+		iota(one.begin(), one.end(), 100);
+		int val2 = 5989;
+		std::function<bool(int)> filt = [](int k)->bool {return k %2;};
+		auto ans2 = std::replace_copy_if(one.begin(), one.end(), two.begin(), filt, val2);
+		auto ans1 = parallel::replace_copy_if(one.begin(), one.end(), three.begin(), filt, val2);
+		auto val = std::equal(two.begin(), two.end(), three.begin());
+		BOOST_CHECK(val && *(ans1 - 1) == *(ans2 - 1));
+	}
+	BOOST_AUTO_TEST_SUITE_END()BOOST_AUTO_TEST_SUITE
+(functions_based_on_sorting_test)
+	BOOST_AUTO_TEST_CASE(is_sorted_test1) {
+		using namespace std;
+		vector<int> one(1000);
+		vector<int> two(1000);
+		iota(one.begin(), one.end(), 100);
+		iota(two.begin(), two.end(), 100);
 
-						auto val1 =std::is_sorted(one.begin(),one.end());
-						auto val2 =parallel::is_sorted(two.begin(),two.end());
+		auto val1 = std::is_sorted(one.begin(), one.end());
+		auto val2 = parallel::is_sorted(two.begin(), two.end());
 
-						BOOST_CHECK(val1==val2);
-					}
-		BOOST_AUTO_TEST_CASE(is_sorted_test2) {
-								using namespace std;
-								vector<int> one(1000);
-								vector<int> two(1000);
-								iota(one.begin(), one.end(), 100);
-								iota(two.begin(), two.end(), 100);
-								std::function<bool(int,int)> f =[](int a, int b)->bool{return a<b ;};
-								auto val1 =std::is_sorted(one.begin(),one.end(),f);
-								auto val2 =parallel::is_sorted(two.begin(),two.end(),f);
+		BOOST_CHECK(val1 == val2);
+	}
+	BOOST_AUTO_TEST_CASE(is_sorted_test2) {
+		using namespace std;
+		vector<int> one(1000);
+		vector<int> two(1000);
+		iota(one.begin(), one.end(), 100);
+		iota(two.begin(), two.end(), 100);
+		std::function<bool(int, int)> f = [](int a, int b)->bool {return a<b;};
+		auto val1 = std::is_sorted(one.begin(), one.end(), f);
+		auto val2 = parallel::is_sorted(two.begin(), two.end(), f);
 
-								BOOST_CHECK(val1==val2);
-							}
+		BOOST_CHECK(val1 == val2);
+	}
 
-		BOOST_AUTO_TEST_CASE(is_sorted_until_test1) {
-								using namespace std;
-								vector<int> one(100);
-								vector<int> two(100);
-								iota(one.begin(), one.end(), 100);
-								iota(two.begin(), two.end(), 100);
-								one[50]=9;
-								two[50]=9;
-								auto val1 =std::is_sorted_until(one.begin(),one.end());
-								auto val2 =parallel::is_sorted_until(two.begin(),two.end());
-								//std::cout<<*val1<<std::endl;
-								//std::cout<<*val2<<std::endl;
-								BOOST_CHECK((*val1)== (*val2));
-							}
-				BOOST_AUTO_TEST_CASE(is_sorted_until_test2) {
-										using namespace std;
-										vector<int> one(100);
-										vector<int> two(100);
-										iota(one.begin(), one.end(), 100);
-										iota(two.begin(), two.end(), 100);
-										one[50]=9;
-										two[50]=9;
-										std::function<bool(int,int)> f =[](int a, int b)->bool{return a<b ;};
-										auto val1 =std::is_sorted_until(one.begin(),one.end(),f);
-										auto val2 =parallel::is_sorted_until(two.begin(),two.end(),f);
+	BOOST_AUTO_TEST_CASE(is_sorted_until_test1) {
+		using namespace std;
+		vector<int> one(100);
+		vector<int> two(100);
+		iota(one.begin(), one.end(), 100);
+		iota(two.begin(), two.end(), 100);
+		one[50] = 9;
+		two[50] = 9;
+		auto val1 = std::is_sorted_until(one.begin(), one.end());
+		auto val2 = parallel::is_sorted_until(two.begin(), two.end());
+		//std::cout<<*val1<<std::endl;
+		//std::cout<<*val2<<std::endl;
+		BOOST_CHECK((*val1) == (*val2));
+	}
+	BOOST_AUTO_TEST_CASE(is_sorted_until_test2) {
+		using namespace std;
+		vector<int> one(100);
+		vector<int> two(100);
+		iota(one.begin(), one.end(), 100);
+		iota(two.begin(), two.end(), 100);
+		one[50] = 9;
+		two[50] = 9;
+		std::function<bool(int, int)> f = [](int a, int b)->bool {return a<b;};
+		auto val1 = std::is_sorted_until(one.begin(), one.end(), f);
+		auto val2 = parallel::is_sorted_until(two.begin(), two.end(), f);
 
-										BOOST_CHECK((*val1)== (*val2));
-									}
-		BOOST_AUTO_TEST_SUITE_END()
+		BOOST_CHECK((*val1) == (*val2));
+	}
+	BOOST_AUTO_TEST_SUITE_END()BOOST_AUTO_TEST_SUITE
+(miscellaneous_tests)
+	BOOST_AUTO_TEST_CASE(swap_ranges_test1) {
+		using namespace std;
+		vector<int> one(1000);
+		vector<int> two(1000);
+		vector<int> three(1000);
+		vector<int> four(1000);
+		iota(one.begin(), one.end(), 9453);
+		iota(two.begin(), two.end(), 9453);
+
+		std::swap_ranges(three.begin(), three.end(), one.begin());
+		parallel::swap_ranges(four.begin(), four.end(), two.begin());
+
+		BOOST_CHECK(std::equal(three.begin(), three.end(), four.begin()));
+	}
+	BOOST_AUTO_TEST_CASE(reverse_test1) {
+		using namespace std;
+		vector<int> one(100);
+		vector<int> two(100);
+
+		iota(one.begin(), one.end(), 100);
+		iota(two.begin(), two.end(), 100);
+
+		std::reverse(one.begin(), one.end());
+		parallel::reverse(two.begin(), two.end());
+		//for(auto i:two)cout<<i<<endl;
+		BOOST_CHECK(std::equal(one.begin(), one.end(), two.begin()));
+	}
+	BOOST_AUTO_TEST_SUITE_END()
 	/*init_unit_test_suite(int argc, char**argv){
 	 return 0;
 	 }*/
