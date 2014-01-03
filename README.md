@@ -16,7 +16,7 @@
  ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
  EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  
-This is a header only implementation of the some of the STL library in C++ using simple threading primitives.
+This is a header only multi-threaded implementation of some of the STL library in C++ using simple threading primitives.
 Currently work in progress..
 For all functions implemented should be called with the parallel namespace instead of the normal std namespaces for STL functions.
 for example parallel::for_each rather than std::for_each. The arguments should match.
