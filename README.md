@@ -21,3 +21,7 @@ Currently work in progress..
 For all functions implemented should be called with the parallel namespace instead of the normal std namespaces for STL functions.
 for example parallel::for_each rather than std::for_each. The arguments should match.
 
+The ideas used are generic enough that the header file should work for all c++ compilers that completely implement the STL and then std::thread libraries for
+c++11. Without needing to link with any other library. So far all the conditions for using the std::thread libraries are met for the individual compiler.
+
+
