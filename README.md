@@ -15,14 +15,25 @@
  DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
  ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
  EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- 
-This is a header only multi-threaded implementation of some of the STL library in C++ using simple threading primitives.
-Currently work in progress..
-For all functions implemented should be called with the parallel namespace instead of the normal std namespaces for STL functions.
-for example parallel::for_each rather than std::for_each. The arguments should match.
 
-The ideas used are generic enough that the header file should work for all c++11 compilers that completely implement the STL and then std::thread libraries for
-c++11. Without needing to link with any other library. So far all the conditions for using the std::thread libraries are met for the individual compiler.
-The test file ParLibTest.cpp uses the boost testing framework and boost test library. 
+#Simple Parallel STL implementation.
+* This is a header only multi-threaded implementation of some of the STL library in C++ using simple threading primitives.
+	Currently work in progress..
+* For all functions implemented should be called with the parallel namespace instead of the normal std namespaces for STL functions.
+	For example parallel::for_each rather than std::for_each. The arguments should match.
+
+##Dependencies
+* The ideas used are generic enough that the header file should work for all c++11 compilers that completely implement the STL and then std::thread libraries for
+c++11.Without needing to link with any other library. So far all the conditions for using the std::thread libraries are met for the individual compiler.
+
+* The test file ParLibTest.cpp uses the boost testing framework and boost test library. 
+* Doxyfile contains doxygen configuration so a documentation can be generated.
+
+Things left to do
+[] Implement the STL functions based on sorting
+[] Improve the Code Documentation.
+[] Update the README file.
+[x] Include doxygen configuration file
+[] Include code examples in README.
 
 

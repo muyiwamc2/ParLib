@@ -2773,11 +2773,12 @@ namespace parallel {
 			}
 	};
 	/**
+	 *@summary function returns true if all values in the range do not satify the unary predicate.
 	 *
-	 * @param beg
-	 * @param end
-	 * @param p
-	 * @return
+	 * @param beg input iterator to the beginning of the input range
+	 * @param end input iterator to the end of the input range.
+	 * @param p Unary predicate used for criteria
+	 * @return if this is true
 	 */
 	template<typename InputIt, typename UnaryPredicate, typename Tpolicy = LaunchPolicies<InputIt>>
 	bool none_of(InputIt beg, InputIt end, UnaryPredicate p) {
@@ -2811,17 +2812,19 @@ namespace parallel {
 		ret = std::all_of(output.begin(), output.end(), [](int k)->bool {return k==1;});
 		return ret;
 	}
-
+	/**
+	 * equal helper class.
+	 */
 	template<typename InputIt1, typename InputIt2>
 	struct equal_block {
 			/**
-			 *
-			 * @param beg1
-			 * @param end1
-			 * @param beg2
+			 * @summary helper for the equal function.
+			 * @param beg1 input iterator to the beginning of the first input block
+			 * @param end1 input iterator to the end of the first input block
+			 * @param beg2 input iterator to the beginning of the second input block.
 			 * @param retval
-			 * @param
-			 * @return
+			 * @param make sure we have an input iterator
+			 * @return if the two blocks are equal
 			 */
 			bool operator()(InputIt1 beg1, InputIt1 end1, InputIt2 beg2, int &retval,
 							std::input_iterator_tag) {
@@ -2833,16 +2836,19 @@ namespace parallel {
 				return ans;
 			}
 	};
+	/**
+	 * equal helper class.
+	 */
 	template<typename InputIt1, typename InputIt2>
 	struct equal_block4 {
 			/**
 			 *
-			 * @param beg1
-			 * @param end1
-			 * @param beg2
-			 * @param end2
-			 * @param retval
-			 * @param
+			 * @param beg1 input iterator to the beginning of the input block
+			 * @param end1 input iterator to the end of the first input block
+			 * @param beg2 input iterator to the beginning of the second input block
+			 * @param end2 input iterator to the end of the second input block
+			 * @param retval possible return value from the block.
+			 * @param make sure we are using input iterators.
 			 * @return
 			 */
 			bool operator()(InputIt1 beg1, InputIt1 end1, InputIt2 beg2, InputIt2 end2, int &retval,
@@ -2856,11 +2862,11 @@ namespace parallel {
 			}
 	};
 	/**
-	 *
-	 * @param beg1
-	 * @param end1
-	 * @param beg2
-	 * @return
+	 * @summary function to compare if two input ranges are equal.
+	 * @param beg1 Input iterator to the beginning of the first input range
+	 * @param end1 Input iterator to the end of the first input range
+	 * @param beg2 Input iterator to the beginning of the second input range.
+	 * @return true if the two input ranges are equal
 	 */
 	template<typename InputIt, typename InputIt2, typename Tpolicy = LaunchPolicies<InputIt> >
 
@@ -2927,14 +2933,14 @@ namespace parallel {
 	template<typename InputIt1, typename InputIt2, typename BinaryPredicate>
 	struct equal_block2 {
 			/**
-			 *
-			 * @param beg1
-			 * @param end1
-			 * @param beg2
-			 * @param p
-			 * @param retval
-			 * @param
-			 * @return
+			 * @summary used to perform comparisons in each block.
+			 * @param beg1 Input iterator to the beginning of the first input range
+			 * @param end1 Input iterator to the end of the first input range
+			 * @param beg2 Input iterator to the beginning of the second input range
+			 * @param p binary predicate used for comparison
+			 * @param retval return value from the block.
+			 * @param make sure we are using input iterators.
+			 * @return true if the two input ranges are equal.
 			 */
 			bool operator()(InputIt1 beg1, InputIt1 end1, InputIt2 beg2, BinaryPredicate p,
 							int &retval, std::input_iterator_tag) {
@@ -2947,12 +2953,12 @@ namespace parallel {
 			}
 	};
 	/**
-	 *
-	 * @param beg1
-	 * @param end1
-	 * @param beg2
-	 * @param p
-	 * @return
+	 * @summary if two iterator ranges are equal
+	 * @param beg1 Input iterator to the beginning of the first range
+	 * @param end1 Input iterator to the end of the first range
+	 * @param beg2 Input iterator to the beginning of the second range
+	 * @param p Binary predicate used for comparison.
+	 * @return true if the ranges are equal.
 	 */
 	template<typename InputIt, typename InputIt2, typename BinaryPredicate,
 			typename Tpolicy = LaunchPolicies<InputIt> >
@@ -3016,19 +3022,21 @@ namespace parallel {
 		auto ans = std::all_of(output.begin(), output.end(), [](int k)->bool {return k==1;});
 		return ans;
 	}
-
+	/**
+	 * helper class for block
+	 */
 	template<typename InputIt1, typename InputIt2, typename BinaryPredicate>
 	struct equal_block3 {
 			/**
 			 *
-			 * @param beg1
-			 * @param end1
-			 * @param beg2
-			 * @param end2
-			 * @param p
-			 * @param retval
-			 * @param
-			 * @return
+			 * @param beg1	Input iterator to the beginning of the first input range
+			 * @param end1 Input iterator to the end of the first input range
+			 * @param beg2 Input iterator to the beginning of the second input range
+			 * @param end2 Input iterator to the end of the second input range
+			 * @param p Binary predicate used for comparison
+			 * @param retval possible return value from the block
+			 * @param make sure we have input iterators.
+			 * @return boolean value if the blocks are equal.
 			 */
 			bool operator()(InputIt1 beg1, InputIt1 end1, InputIt2 beg2, InputIt2 end2,
 							BinaryPredicate p, int &retval, std::input_iterator_tag) {
@@ -3042,11 +3050,11 @@ namespace parallel {
 	};
 	/**
 	 *
-	 * @param beg1
-	 * @param end1
-	 * @param beg2
-	 * @param end2
-	 * @param p
+	 * @param beg1 Input iterator to the beginning of the first input range
+	 * @param end1 Input iterator to the end of the first input range
+	 * @param beg2 Input iterator to the beginning of the second input range
+	 * @param end2 Input iterator to the end of the second input rage
+	 * @param p Binary predicate used for comparison.
 	 * @return
 	 */
 	template<typename InputIt, typename InputIt2, typename BinaryPredicate,
@@ -3090,10 +3098,10 @@ namespace parallel {
 	//equal version 4
 	/**
 	 *
-	 * @param beg1
-	 * @param end1
-	 * @param beg2
-	 * @param end2
+	 * @param beg1 Input iterator to the beginning of the first input range
+	 * @param end1 Input iterator to the end of the first input range
+	 * @param beg2 Input iterator to the beginning of the second input range
+	 * @param end2 Input iterator to the end of the second input range
 	 * @return
 	 */
 	template<typename InputIt, typename InputIt2, typename Tpolicy = LaunchPolicies<InputIt> >
@@ -3163,9 +3171,9 @@ namespace parallel {
 	struct max_element_block {
 			/**
 			 *
-			 * @param beg
-			 * @param end
-			 * @param retval
+			 * @param beg iterator to the beginning of the block
+			 * @param end iterator to the end of the block
+			 * @param retval possible return value from the block.
 			 * @param
 			 */
 			void operator()(
@@ -3179,8 +3187,8 @@ namespace parallel {
 	};
 	/**
 	 *
-	 * @param beg
-	 * @param end
+	 * @param beg Forward iterator to the beginning of the input container range
+	 * @param end Forward iterator to the end of the input container range
 	 * @return
 	 */
 	template<typename ForwardIt, typename Tpolicy = LaunchPolicies<ForwardIt> >
@@ -3220,15 +3228,17 @@ namespace parallel {
 								std::pair<ForwardIt, typename std::iterator_traits<ForwardIt>::value_type> b)->bool {return a.second<b.second;});
 		return (*ans).first;
 	}
-
+	/**
+	 * max_element block helper class.
+	 */
 	template<typename ForwardIt, typename Comp>
 	struct max_element_block2 {
 			/**
 			 *
-			 * @param beg
-			 * @param end
-			 * @param cmp
-			 * @param retval
+			 * @param beg iterator to the beginning of the input block
+			 * @param end iterator to the end of the input block
+			 * @param cmp binary comparison predicate
+			 * @param retval return value for this block.
 			 * @param
 			 */
 			void operator()(
@@ -3243,10 +3253,10 @@ namespace parallel {
 	};
 	/**
 	 *
-	 * @param beg
-	 * @param end
-	 * @param cmp
-	 * @return
+	 * @param beg Forward iterator to the beginning of the input container
+	 * @param end Forward iterator to the end of the input container
+	 * @param cmp binary comparison operator.
+	 * @return Forward iterator to the max element.
 	 */
 	template<typename ForwardIt, typename Comp, typename Tpolicy = LaunchPolicies<ForwardIt> >
 
@@ -3286,15 +3296,17 @@ namespace parallel {
 								std::pair<ForwardIt, typename std::iterator_traits<ForwardIt>::value_type> b)->bool {return cmp(a.second,b.second);});
 		return (*ans).first;
 	}
-	// min_element
+	/**
+	 * min_element helper class.
+	 */
 	template<typename ForwardIt>
 	struct min_element_block {
 			/**
 			 *
-			 * @param beg
-			 * @param end
-			 * @param retval
-			 * @param
+			 * @param beg Forward iterator to the beginning of input block
+			 * @param end Forward iterator to the end of the input block
+			 * @param retval possible return value from this block
+			 * @param to make sure we have forward iterators.
 			 */
 			void operator()(
 					ForwardIt beg,
@@ -3307,9 +3319,9 @@ namespace parallel {
 	};
 	/**
 	 *
-	 * @param beg
-	 * @param end
-	 * @return
+	 * @param beg Forward iterator to the beginning of the input container
+	 * @param end Forward iterator to the end of the input container
+	 * @return Forward iterator to the minimum element
 	 */
 	template<typename ForwardIt, typename Tpolicy = LaunchPolicies<ForwardIt> >
 
@@ -3348,16 +3360,18 @@ namespace parallel {
 								std::pair<ForwardIt, typename std::iterator_traits<ForwardIt>::value_type> b)->bool {return a.second<b.second;});
 		return (*ans).first;
 	}
-
+	/**
+	 * min element helper class.
+	 */
 	template<typename ForwardIt, typename Comp>
 	struct min_element_block2 {
 			/**
 			 *
-			 * @param beg
-			 * @param end
-			 * @param cmp
-			 * @param retval
-			 * @param
+			 * @param beg iterator to the beginning of the block
+			 * @param end iterator to the end of the block
+			 * @param cmp binary comparison operator
+			 * @param retval value returned from each block
+			 * @param make sure that we have forward iterators.
 			 */
 			void operator()(
 					ForwardIt beg,
@@ -3371,10 +3385,10 @@ namespace parallel {
 	};
 	/**
 	 *
-	 * @param beg
-	 * @param end
-	 * @param cmp
-	 * @return
+	 * @param beg Forward iterator to the beginning of the input container
+	 * @param end Forward iterator to the end of the input container
+	 * @param cmp binary comparison operator for container elements
+	 * @return Iterator to the minimum element.
 	 */
 	template<typename ForwardIt, typename Comp, typename Tpolicy = LaunchPolicies<ForwardIt> >
 
@@ -3415,16 +3429,18 @@ namespace parallel {
 		return (*ans).first;
 	}
 
-	//minmax_element
+	/**
+	 * Helper function for minmax_element.
+	 */
 	template<typename ForwardIt>
 	struct minmax_element_block {
 			/**
 			 *
-			 * @param beg
-			 * @param end
-			 * @param retmin
-			 * @param retmax
-			 * @param
+			 * @param beg the beginning of the block.
+			 * @param end the end of the block.
+			 * @param retmin the minimum in this block.
+			 * @param retmax the maximum in the block.
+			 * @param make sure we have a forward iterator.
 			 */
 			void operator()(
 					ForwardIt beg,
@@ -3441,9 +3457,9 @@ namespace parallel {
 	};
 	/**
 	 *
-	 * @param beg
-	 * @param end
-	 * @return
+	 * @param beg Forward iterator to the beginning of the input container.
+	 * @param end Forward iterator to the end of the input container
+	 * @return std::pair containing the minimum and maximum element
 	 */
 	template<typename ForwardIt, typename Tpolicy = LaunchPolicies<ForwardIt> >
 
@@ -3603,7 +3619,7 @@ namespace parallel {
 			 *
 			 * @param beg2 beginning of the Output container
 			 * @param ret vector containing Iterators to elements that satisfy the predicate.
-			 * @param
+			 * @param make sure we have at leas an input iterator.
 			 * @return
 			 */
 			void operator()(OutputIt beg2, std::vector<InputIt> &ret, std::input_iterator_tag) {
@@ -4398,7 +4414,7 @@ namespace parallel {
 	struct swap_ranges_block {
 			/**
 			 *
-			 * @param beg1 Forward Iterator to the begining of the first input container
+			 * @param beg1 Forward Iterator to the beginning of the first input container
 			 * @param end1 Forward Iterator to the end of the first input container
 			 * @param beg2 Forward Iterator to the beginning of the second container.
 			 * @param  used to make sure we at least have bidirectional iterators
