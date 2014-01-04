@@ -29,11 +29,11 @@ c++11.Without needing to link with any other library. So far all the conditions 
 * The test file ParLibTest.cpp uses the boost testing framework and boost test library. 
 * Doxyfile contains doxygen configuration so a documentation can be generated.
 
-Things left to do
-[] Implement the STL functions based on sorting
-[] Improve the Code Documentation.
-[] Update the README file.
-[x] Include doxygen configuration file
-[] Include code examples in README.
+* Things left to do
+	1. Implement the STL functions based on sorting
+	2. Improve the Code Documentation.
+	3. Update the README file.
+	4. Include doxygen configuration file
+	5. Include code examples in README.
 
 
