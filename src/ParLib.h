@@ -295,30 +295,35 @@ namespace parallel {
 
 		return result;
 	}
-
+	/**
+	 * Helper for the fill function
+	 */
 	template<typename ForwardIt, typename T>
 	struct fill_block {
 			/**
 			 *
-			 * @param beg
-			 * @param end
-			 * @param value
-			 * @param
+			 * @param beg the beginning of the input block
+			 * @param end  the end of the input block
+			 * @param value to be filled.
+			 * @param makes sure we have a forward iterator
 			 */
 			void operator()(ForwardIt beg, ForwardIt end, const T& value,
 							std::forward_iterator_tag) {
 				std::fill(beg, end, value);
 			}
 	};
+	/**
+	 * helper for fill_n function.
+	 */
 	template<typename OutputIt, typename Size, typename T>
 	struct fill_n_block {
 			/**
 			 *
-			 * @param beg
-			 * @param end
-			 * @param count
-			 * @param value
-			 * @param ret
+			 * @param beg The beginning of the input block
+			 * @param end The end of the input block.
+			 * @param count The number of elements to fill in this block.
+			 * @param value The value to be filled
+			 * @param ret The value to return to use later.
 			 */
 			void operator()(OutputIt beg, OutputIt end, Size count, const T& value,
 							std::pair<OutputIt, bool> &ret) {
@@ -333,11 +338,11 @@ namespace parallel {
 	struct fill_n_block2 {
 			/**
 			 *
-			 * @param beg
-			 * @param end
-			 * @param count
-			 * @param value
-			 * @param ret
+			 * @param beg The beginning of the input block
+			 * @param end The end of the input block.
+			 * @param count The number of values to fill.
+			 * @param value The value to be filled
+			 * @param ret The value to be returned to the rest
 			 * @return
 			 */
 			OutputIt operator()(OutputIt beg, OutputIt end, Size count, const T& value,
@@ -350,10 +355,10 @@ namespace parallel {
 
 	};
 	/**
-	 *
-	 * @param beg
-	 * @param end
-	 * @param value
+	 *@summary fills the whole range with value
+	 * @param beg  Input iterator to the beginning of the input range
+	 * @param end  Input iterator to the end of the input range
+	 * @param value The value to be filled.
 	 */
 	template<typename InputIt, typename T, typename Tpolicy = LaunchPolicies<InputIt> >
 	void fill(InputIt beg, InputIt end, T &value) {
@@ -381,10 +386,10 @@ namespace parallel {
 
 	}
 	/**
-	 *
-	 * @param beg
-	 * @param count
-	 * @param value
+	 *@summary old function likely deprecated
+	 * @param beg Output iterator to the beginning of the input range
+	 * @param count number of values to be filled
+	 * @param value the value to be filled.
 	 */
 	template<typename OutputIt, typename Size, typename T, typename Tpolicy = LaunchPolicies<
 			OutputIt> >
@@ -419,11 +424,11 @@ namespace parallel {
 
 	}
 	/**
-	 *
-	 * @param beg
-	 * @param count
-	 * @param value
-	 * @return
+	 * @summary fill count values starting from beg
+	 * @param beg Output iterator to the beginning of the input range
+	 * @param count number of values to be filled.
+	 * @param value The value to fill
+	 * @return Output iterator to the last value filled.
 	 */
 	template<typename OutputIt, typename Size, typename T, typename Tpolicy = LaunchPolicies<
 			OutputIt> >
@@ -538,7 +543,7 @@ namespace parallel {
 	 * @param beg Iterator to the beginning of the input container
 	 * @param count how many elements we have to generate for.
 	 * @param g function to be executed to fill every element.
-	 * @return
+	 * @return Output iterator to one after the last value changed.
 	 */
 	template<typename OutputIt, typename Size, typename Generator,
 			typename Tpolicy = LaunchPolicies<OutputIt> >
@@ -580,11 +585,11 @@ namespace parallel {
 	struct accumulate_block {
 			/**
 			 *
-			 * @param beg
-			 * @param end
-			 * @param ret
-			 * @param
-			 * @return
+			 * @param beg Input iterator to the beginning of the input block
+			 * @param end Input iterator to the end of the input block
+			 * @param ret The value to be returned from this block
+			 * @param To make sure we have input iterators
+			 * @return the sum in this block.
 			 */
 			T operator()(InputIt beg, InputIt end, T &ret, std::input_iterator_tag) {
 
@@ -598,12 +603,12 @@ namespace parallel {
 	struct accumulate_block2 {
 			/**
 			 *
-			 * @param beg
-			 * @param end
-			 * @param ret
-			 * @param op
-			 * @param
-			 * @return
+			 * @param beg Input iterator to the beginning of the input block
+			 * @param end Input iterator to the end of the input block
+			 * @param ret The value to be returned from this block
+			 * @param op Binary operator used for accumulate
+			 * @param To make sure we are using an input iterator
+			 * @return returned accumulate for this block.
 			 */
 			T operator()(InputIt beg, InputIt end, T &ret, BinaryOperator op,
 							std::input_iterator_tag) {
@@ -614,11 +619,11 @@ namespace parallel {
 			}
 	};
 	/**
-	 *
-	 * @param beg
-	 * @param end
-	 * @param init
-	 * @return
+	 *@summary performs an accumulation or reduce or foldl operation on an input rage. Can perform foldr by reversing the input range.
+	 * @param beg Input iterator to the beginning of the input range
+	 * @param end Input iterator to the end of the input range
+	 * @param init The initial value
+	 * @return The result of the reduce or foldl operation.
 	 */
 	template<typename InputIt, typename T, typename Tpolicy = LaunchPolicies<InputIt>>
 	T accumulate(InputIt beg, InputIt end, T init) {
@@ -651,11 +656,12 @@ namespace parallel {
 
 	/**
 	 *
-	 * @param beg
-	 * @param end
-	 * @param init
-	 * @param op
-	 * @return
+	 *@summary performs an accumulation or reduce or foldl operation on an input rage. Can perform foldr by reversing the input range.
+	 * @param beg Input iterator to the beginning of the input range
+	 * @param end Input iterator to the end of the input range
+	 * @param init The initial value
+	 * @param op binary operator used in the reduce
+	 * @return result of the accumulate/foldl/reduce operation.
 	 */
 	template<typename InputIt, typename T, typename BinaryOperator,
 			typename Tpolicy = LaunchPolicies<InputIt>>
@@ -1173,7 +1179,7 @@ namespace parallel {
 			 * @param end1 end of the input container
 			 * @param beg2 beginning of the output container
 			 * @param AddValue this is the value to be added to the partial sums to make them correct
-			 * @param
+			 * @param make sure we have an input iterator.
 			 */
 			void operator()(InputIt beg1, InputIt end1, OutputIt beg2,
 							typename std::iterator_traits<InputIt>::value_type &AddValue,
@@ -1200,11 +1206,11 @@ namespace parallel {
 			}
 	};
 	/**
-	 *
-	 * @param beg1
-	 * @param end1
-	 * @param beg2
-	 * @return
+	 * @summary returns the partial sums in the output countainer starting at beg2
+	 * @param beg1 input iterator to the beginning of the input range
+	 * @param end1 input iterator to the end of the input range
+	 * @param beg2 output iterator to the beginning of the output range
+	 * @return Output iterator to the last item
 	 */
 	template<typename InputIt, typename OutputIt, typename Tpolicy = LaunchPolicies<InputIt>>
 	OutputIt partial_sum(InputIt beg1, InputIt end1, OutputIt beg2) {
@@ -1349,12 +1355,13 @@ namespace parallel {
 			}
 	};
 	/**
-	 *
-	 * @param beg1
-	 * @param end1
-	 * @param beg2
-	 * @param op
-	 * @return
+	 *@summary computes the partial sums of elements of length end - beg,
+	 *			the output container must also be end -beg long.
+	 * @param beg1 Input iterator to the beginning of the input range
+	 * @param end1 Input iterator to the end of the input range
+	 * @param beg2 Output iterator to the beginning of the output container
+	 * @param op Binary operator for the partial sum
+	 * @return Output iterator to the last element of the partial sum
 	 */
 	template<typename InputIt, typename OutputIt, typename BinaryOp,
 			typename Tpolicy = LaunchPolicies<InputIt>>
@@ -2538,11 +2545,11 @@ namespace parallel {
 			}
 	};
 	/**
-	 *
-	 * @param beg
-	 * @param end
-	 * @param val
-	 * @return
+	 * @summary counts all the items in the range with a certain value.
+	 * @param beg Input iterator to the beginning of the input range
+	 * @param end Input iterator to the end of the input range
+	 * @param val value to be counted.
+	 * @return the count of the item
 	 */
 	template<typename InputIt, typename T, typename Tpolicy = LaunchPolicies<InputIt> >
 	typename std::iterator_traits<InputIt>::difference_type count(InputIt beg, InputIt end,
@@ -2575,16 +2582,18 @@ namespace parallel {
 		auto ans = std::accumulate(output.begin(), output.end(), ret);
 		return ans;
 	}
-
+	/**
+	 * helper class for count_if
+	 */
 	template<typename InputIt, typename UnaryPredicate>
 	struct count_if_block {
 			/**
 			 *
-			 * @param beg
-			 * @param end
-			 * @param p
-			 * @param ret
-			 * @param
+			 * @param beg Input iterator to the beginning of the input range
+			 * @param end Input iterator to the end of the input range
+			 * @param p unary predicate
+			 * @param ret  used to hold the return values
+			 * @param make sure we have Input iterators
 			 * @return
 			 */
 			typename std::iterator_traits<InputIt>::difference_type operator ()(
@@ -2596,11 +2605,11 @@ namespace parallel {
 			}
 	};
 	/**
-	 *
-	 * @param beg
-	 * @param end
-	 * @param p
-	 * @return
+	 * @summary counts all elements in the input range that satisfy the predicate
+	 * @param beg Input iterator to the beginning of the input range
+	 * @param end Input iterator to the end of the input range
+	 * @param p unary predicate to be satisfied if we are to count the element
+	 * @return the count of items that satisfy the unary predicate.
 	 */
 	template<typename InputIt, typename UnaryPredicate, typename Tpolicy = LaunchPolicies<InputIt> >
 	typename std::iterator_traits<InputIt>::difference_type count_if(InputIt beg, InputIt end,
@@ -2634,14 +2643,17 @@ namespace parallel {
 		auto ans = std::accumulate(output.begin(), output.end(), ret);
 		return ans;
 	}
+	/**
+	 * all of helper block.
+	 */
 	template<typename InputIt, typename UnaryPredicate>
 	struct all_of_block {
 			/**
 			 *
-			 * @param beg
-			 * @param end
-			 * @param p
-			 * @param ret
+			 * @param beg Input iterator to the beginning of the input block
+			 * @param end Input iterator to the end of the input block
+			 * @param p	unary predicate
+			 * @param ret hold return value if all of the elements of the range satisfy the predicate.
 			 * @param
 			 */
 			void operator ()(InputIt beg, InputIt end, UnaryPredicate p, int &ret,
@@ -2655,10 +2667,10 @@ namespace parallel {
 			}
 	};
 	/**
-	 *
-	 * @param beg
-	 * @param end
-	 * @param p
+	 * @summary returs true if all the elements of the range satisfy the unary predicate.
+	 * @param beg Input iterator to the beginning of the input range
+	 * @param end Input iterator to the end of the input range
+	 * @param p unary predicate
 	 * @return
 	 */
 	template<typename InputIt, typename UnaryPredicate, typename Tpolicy = LaunchPolicies<InputIt>>
@@ -2693,14 +2705,17 @@ namespace parallel {
 		ret = std::all_of(output.begin(), output.end(), [](int k)->bool {return k==1;});
 		return ret;
 	}
+	/***
+	 * helper class for any_of
+	 */
 	template<typename InputIt, typename UnaryPredicate>
 	struct any_of_block {
 			/**
 			 *
-			 * @param beg
-			 * @param end
-			 * @param p
-			 * @param ret
+			 * @param beg Input iterator to the beginning of the input range
+			 * @param end Input iterator to the end of the input range
+			 * @param p Unary predicate
+			 * @param ret The return value if any of the elements in the range are true
 			 * @param
 			 */
 			void operator ()(InputIt beg, InputIt end, UnaryPredicate p, int &ret,
@@ -2714,10 +2729,11 @@ namespace parallel {
 			}
 	};
 	/**
+	 * @summary returns true if any of the elements satisfy the predicate
 	 *
-	 * @param beg
-	 * @param end
-	 * @param p
+	 * @param beg Input iterator to the begining of the input range
+	 * @param end Input iterator to the end of the input range
+	 * @param p unary predicate
 	 * @return
 	 */
 	template<typename InputIt, typename UnaryPredicate, typename Tpolicy = LaunchPolicies<InputIt>>
@@ -2756,11 +2772,11 @@ namespace parallel {
 	struct none_of_block {
 			/**
 			 *
-			 * @param beg
-			 * @param end
-			 * @param p
-			 * @param ret
-			 * @param
+			 * @param beg Input iterator to the beginning of the input range
+			 * @param end Input iterator to the end of the input range
+			 * @param p unary predicate
+			 * @param ret used for return value
+			 * @param make sure we have input iterators
 			 */
 			void operator ()(InputIt beg, InputIt end, UnaryPredicate p, int &ret,
 								std::input_iterator_tag) {
