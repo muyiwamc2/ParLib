@@ -47,6 +47,9 @@ namespace parallel {
 	enum class ThreadTypes {
 		standard, async
 	};
+	/**
+	 * @summary This class handles certain threading properties of each algorithm.
+	 */
 	template<typename InputIt, unsigned int blksz = 25, unsigned int mxThread =0 ,ThreadTypes tT = ThreadTypes::standard>
 	class LaunchPolicies {
 		public:
