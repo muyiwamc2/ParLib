@@ -47,12 +47,13 @@ namespace parallel {
 	enum class ThreadTypes {
 		standard, async
 	};
-	template<typename InputIt, unsigned int blksz = 25, ThreadTypes tT = ThreadTypes::standard>
+	template<typename InputIt, unsigned int blksz = 25, unsigned int mxThread =0 ,ThreadTypes tT = ThreadTypes::standard>
 	class LaunchPolicies {
 		public:
 			ThreadTypes tTypes;
 			unsigned long length;
 			unsigned long hardware_threads = std::thread::hardware_concurrency();
+			unsigned long max_hardware_threads=0;
 			unsigned long min_per_thread;
 			unsigned long max_threads;
 			unsigned long num_threads;
@@ -61,6 +62,8 @@ namespace parallel {
 				tTypes = tT;
 				length = std::distance(beg, end);
 				hardware_threads = std::thread::hardware_concurrency();
+				max_hardware_threads=mxThread;
+				if(max_hardware_threads and max_hardware_threads>0)hardware_threads=std::min(hardware_threads,max_hardware_threads);
 				min_per_thread = blksz;
 				max_threads = (length + min_per_thread) / min_per_thread;
 				;
@@ -75,6 +78,7 @@ namespace parallel {
 				tTypes = tT;
 				length = dist;
 				hardware_threads = std::thread::hardware_concurrency();
+
 				min_per_thread = blksz;
 				max_threads = (length + min_per_thread) / min_per_thread;
 				;
@@ -83,19 +87,21 @@ namespace parallel {
 			}
 	};
 	template<typename InputIt>
-	class LaunchPolicies<InputIt, 25, ThreadTypes::standard> {
+	class LaunchPolicies<InputIt, 25, 0,ThreadTypes::standard> {
 		public:
 			ThreadTypes tTypes;
 			unsigned long length;
 			unsigned long hardware_threads;
 			unsigned long min_per_thread;
 			unsigned long max_threads;
+			unsigned long max_hardware_threads=0;
 			unsigned long num_threads;
 			unsigned long block_size;
 			void SetLaunchPolicies(InputIt beg, InputIt end) {
 				tTypes = ThreadTypes::standard;
 				length = std::distance(beg, end);
 				hardware_threads = std::thread::hardware_concurrency();
+				if(max_hardware_threads and max_hardware_threads>0)hardware_threads=std::min(max_hardware_threads,hardware_threads);
 				min_per_thread = 25;
 				max_threads = (length + min_per_thread) / min_per_thread;
 				;
