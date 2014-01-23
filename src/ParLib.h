@@ -61,6 +61,11 @@ namespace parallel {
 			unsigned long max_threads;
 			unsigned long num_threads;
 			unsigned long block_size;
+			/**
+			 * @summary sets the laung policies for the threads..
+			 * @param beg Input iterator to the beginning of the input range
+			 * @param end Input iterator to the end of the input range
+			 */
 			void SetLaunchPolicies(InputIt beg, InputIt end) {
 				tTypes = tT;
 				length = std::distance(beg, end);
