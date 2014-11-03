@@ -4419,7 +4419,7 @@ namespace parallel {
 			std::reverse(beg, end);
 			return;
 		}
-		std::cout << "the length of the container is:" << len << std::endl;
+
 		std::vector < std::thread > threads(Tp.num_threads - 1);
 		BidirIt block_start = beg;
 		BidirIt block_end = beg;

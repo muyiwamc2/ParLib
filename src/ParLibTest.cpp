@@ -782,12 +782,12 @@ BOOST_AUTO_TEST_SUITE(replace)
 	}
 	BOOST_AUTO_TEST_CASE(reverse_test1) {
 		using namespace std;
-		vector<int> one(100);
-		vector<int> two(100);
+		vector<int> one(10000000);
+		vector<int> two(10000000);
 
-		iota(one.begin(), one.end(), 100);
-		iota(two.begin(), two.end(), 100);
-
+		iota(one.begin(), one.end(), 10000000);
+		iota(two.begin(), two.end(), 10000000);
+		cout<<"done"<<endl;
 		std::reverse(one.begin(), one.end());
 		parallel::reverse(two.begin(), two.end());
 		//for(auto i:two)cout<<i<<endl;
