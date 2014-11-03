@@ -167,7 +167,7 @@ namespace parallel {
 		std::vector < std::thread > threads(Tp.num_threads - 1);
 		InputIt block_start = beg;
 		InputIt block_end = beg;
-		for(int i = 0; i < (Tp.num_threads - 1); i++) {
+		for(unsigned int i = 0; i < (Tp.num_threads - 1); i++) {
 
 			std::advance(block_end, Tp.block_size);
 			threads[i] = std::thread(foreach_block<InputIt, UnaryFunction>(), block_start,
@@ -244,7 +244,7 @@ namespace parallel {
 		InputIt last = end;
 
 		OutputIt outblock_start = result;
-		for(int i = 0; i < (Tp.num_threads - 1); i++) {
+		for(unsigned int i = 0; i < (Tp.num_threads - 1); i++) {
 
 			std::advance(block_end, Tp.block_size);
 			threads[i] = std::thread(transform_block<InputIt, OutputIt, UnaryOperator>(),
@@ -288,7 +288,7 @@ namespace parallel {
 		InputIt last1 = end1;
 
 		OutputIt outblock_start = result;
-		for(int i = 0; i < (Tp.num_threads - 1); i++) {
+		for(unsigned int i = 0; i < (Tp.num_threads - 1); i++) {
 
 			std::advance(block_end1, Tp.block_size);
 			threads[i] = std::thread(
@@ -386,7 +386,7 @@ namespace parallel {
 		std::vector < std::thread > threads(Tp.num_threads - 1);
 		InputIt block_start = beg;
 		InputIt block_end = beg;
-		for(int i; i < (Tp.num_threads - 1); i++) {
+		for(unsigned int i; i < (Tp.num_threads - 1); i++) {
 
 			std::advance(block_end, Tp.block_size);
 			threads[i] = std::thread(fill_block<InputIt, T>(), block_start, block_end,
@@ -424,7 +424,7 @@ namespace parallel {
 		OutputIt block_start = beg;
 		OutputIt block_end = beg;
 
-		for(int i; i < (Tp.num_threads - 1); i++) {
+		for(unsigned int i; i < (Tp.num_threads - 1); i++) {
 
 			std::advance(block_end, Tp.block_size);
 			threads[i] = std::thread(fill_n_block<OutputIt, Size, T>(), block_start, block_end,
@@ -463,7 +463,7 @@ namespace parallel {
 		OutputIt block_start = beg;
 		OutputIt block_end = beg;
 
-		for(int i = 0; i < (Tp.num_threads - 1); i++) {
+		for(unsigned int i = 0; i < (Tp.num_threads - 1); i++) {
 
 			std::advance(block_end, Tp.block_size);
 			threads[i] = std::thread(fill_n_block2<OutputIt, Size, T>(), block_start, block_end,
@@ -538,7 +538,7 @@ namespace parallel {
 		std::vector < std::thread > threads(Tp.num_threads - 1);
 		ForwardIt block_start = beg;
 		ForwardIt block_end = beg;
-		for(int i = 0; i < (Tp.num_threads - 1); i++) {
+		for(unsigned int i = 0; i < (Tp.num_threads - 1); i++) {
 
 			std::advance(block_end, Tp.block_size);
 			threads[i] = std::thread(generate_block<ForwardIt, Generator>(), block_start, block_end,
@@ -578,7 +578,7 @@ namespace parallel {
 		std::vector<std::pair<OutputIt, bool>> output(Tp.num_threads);
 		OutputIt block_start = beg;
 		OutputIt block_end = beg;
-		for(int i = 0; i < (Tp.num_threads - 1); i++) {
+		for(unsigned int i = 0; i < (Tp.num_threads - 1); i++) {
 
 			std::advance(block_end, Tp.block_size);
 			Size cnt = static_cast<Size>(std::distance(block_start, block_end));
@@ -653,7 +653,7 @@ namespace parallel {
 		InputIt block_end = beg;
 		InputIt last = end;
 
-		for(int i = 0; i < (Tp.num_threads - 1); i++) {
+		for(unsigned int i = 0; i < (Tp.num_threads - 1); i++) {
 
 			std::advance(block_end, Tp.block_size);
 			threads[i] = std::thread(accumulate_block<InputIt, T>(), block_start, block_end,
@@ -692,7 +692,7 @@ namespace parallel {
 		InputIt block_end = beg;
 		InputIt last = end;
 
-		for(int i = 0; i < (Tp.num_threads - 1); i++) {
+		for(unsigned int i = 0; i < (Tp.num_threads - 1); i++) {
 
 			std::advance(block_end, Tp.block_size);
 			threads[i] = std::thread(accumulate_block2<InputIt, T, BinaryOperator>(), block_start,
@@ -776,7 +776,7 @@ namespace parallel {
 		InputIt block_end = beg;
 		InputIt last = end;
 
-		for(int i = 0; i < (Tp.num_threads - 1); i++) {
+		for(unsigned int i = 0; i < (Tp.num_threads - 1); i++) {
 
 			std::advance(block_end, Tp.block_size);
 			threads[i] = std::thread(accumulate_if_block<InputIt, T, UnaryPred>(), block_start,
@@ -818,7 +818,7 @@ namespace parallel {
 		InputIt block_end = beg;
 		InputIt last = end;
 
-		for(int i = 0; i < (Tp.num_threads - 1); i++) {
+		for(unsigned int i = 0; i < (Tp.num_threads - 1); i++) {
 
 			std::advance(block_end, Tp.block_size);
 			threads[i] = std::thread(accumulate_if_block2<InputIt, T, UnaryPred, BinaryOperator>(),
@@ -900,7 +900,7 @@ namespace parallel {
 		InputIt2 block_start2 = beg2;
 		InputIt last = end1;
 
-		for(int i = 0; i < (Tp.num_threads - 1); i++) {
+		for(unsigned int i = 0; i < (Tp.num_threads - 1); i++) {
 
 			std::advance(block_end, Tp.block_size);
 			threads[i] = std::thread(inner_product_block<InputIt, InputIt2, T>(), block_start,
@@ -945,7 +945,7 @@ namespace parallel {
 		InputIt2 block_start2 = beg2;
 		InputIt last = end1;
 
-		for(int i = 0; i < (Tp.num_threads - 1); i++) {
+		for(unsigned int i = 0; i < (Tp.num_threads - 1); i++) {
 
 			std::advance(block_end, Tp.block_size);
 			threads[i] = std::thread(
@@ -1021,7 +1021,7 @@ namespace parallel {
 		OutputIt block_start2 = beg2;
 		InputIt last = end1;
 		//initialise values and reset iterators after all is done.
-		for(int i = 0; i < (Tp.num_threads - 1); i++) {
+		for(unsigned int i = 0; i < (Tp.num_threads - 1); i++) {
 			std::advance(block_end, Tp.block_size);
 			initVals[i].first = *block_start;
 			initVals[i].second = *block_start2;
@@ -1035,7 +1035,7 @@ namespace parallel {
 		block_end = beg1;
 		block_start2 = beg2;
 
-		for(int i = 0; i < (Tp.num_threads - 1); i++) {
+		for(unsigned int i = 0; i < (Tp.num_threads - 1); i++) {
 
 			std::advance(block_end, Tp.block_size);
 
@@ -1118,7 +1118,7 @@ namespace parallel {
 		InputIt last = end1;
 
 		//initialise values and reset iterators after all is done.
-		for(int i = 0; i < (Tp.num_threads - 1); i++) {
+		for(unsigned int i = 0; i < (Tp.num_threads - 1); i++) {
 			std::advance(block_end, Tp.block_size);
 			initVals[i].first = *block_start;
 			initVals[i].second = *block_start2;
@@ -1132,7 +1132,7 @@ namespace parallel {
 		block_end = beg1;
 		block_start2 = beg2;
 
-		for(int i = 0; i < (Tp.num_threads - 1); i++) {
+		for(unsigned int i = 0; i < (Tp.num_threads - 1); i++) {
 
 			std::advance(block_end, Tp.block_size);
 
@@ -1242,7 +1242,7 @@ namespace parallel {
 		OutputIt block_start2 = beg2;
 		InputIt last = end1;
 
-		for(int i = 0; i < (Tp.num_threads - 1); i++) {
+		for(unsigned int i = 0; i < (Tp.num_threads - 1); i++) {
 
 			std::advance(block_end, Tp.block_size);
 
@@ -1274,7 +1274,7 @@ namespace parallel {
 		block_start = block_end;
 		std::advance(block_start2, Tp.block_size);
 		//now go through the motions.
-		for(int i = 1; i < (Tp.num_threads - 1); i++) {
+		for(unsigned int i = 1; i < (Tp.num_threads - 1); i++) {
 
 			std::advance(block_end, Tp.block_size);
 
@@ -1394,7 +1394,7 @@ namespace parallel {
 		OutputIt block_start2 = beg2;
 		InputIt last = end1;
 
-		for(int i = 0; i < (Tp.num_threads - 1); i++) {
+		for(unsigned int i = 0; i < (Tp.num_threads - 1); i++) {
 
 			std::advance(block_end, Tp.block_size);
 
@@ -1426,7 +1426,7 @@ namespace parallel {
 		block_start = block_end;
 		std::advance(block_start2, Tp.block_size);
 		//now go through the motions.
-		for(int i = 1; i < (Tp.num_threads - 1); i++) {
+		for(unsigned int i = 1; i < (Tp.num_threads - 1); i++) {
 
 			std::advance(block_end, Tp.block_size);
 
@@ -1517,7 +1517,7 @@ namespace parallel {
 		InputIt block_end = beg;
 		InputIt last = end;
 
-		for(int i = 0; i < (Tp.num_threads - 1); i++) {
+		for(unsigned int i = 0; i < (Tp.num_threads - 1); i++) {
 
 			std::advance(block_end, Tp.block_size);
 			threads[i] = std::thread(find_block<InputIt, T>(), block_start, block_end, val,
@@ -1556,7 +1556,7 @@ namespace parallel {
 		ForwardIt block_end = beg;
 		ForwardIt last = end;
 		ForwardIt block_end2 = block_end;
-		for(int i = 0; i < (Tp.num_threads - 1); i++) {
+		for(unsigned int i = 0; i < (Tp.num_threads - 1); i++) {
 
 			std::advance(block_end, Tp.block_size);
 			block_end2 = block_end;
@@ -1647,7 +1647,7 @@ namespace parallel {
 		InputIt block_end = beg;
 		InputIt last = end;
 
-		for(int i = 0; i < (Tp.num_threads - 1); i++) {
+		for(unsigned int i = 0; i < (Tp.num_threads - 1); i++) {
 
 			std::advance(block_end, Tp.block_size);
 			threads[i] = std::thread(find_if_block<InputIt, UnaryPredicate>(), block_start,
@@ -1690,7 +1690,7 @@ namespace parallel {
 		ForwardIt block_end2 = beg;
 		ForwardIt last = end;
 
-		for(int i = 0; i < (Tp.num_threads - 1); i++) {
+		for(unsigned int i = 0; i < (Tp.num_threads - 1); i++) {
 
 			std::advance(block_end, Tp.block_size);
 			block_end2 = block_end;
@@ -1793,7 +1793,7 @@ namespace parallel {
 		ForwardIt1 block_end = beg1;
 		ForwardIt1 last = end1;
 
-		for(int i = 0; i < (Tp.num_threads - 1); i++) {
+		for(unsigned int i = 0; i < (Tp.num_threads - 1); i++) {
 
 			std::advance(block_end, Tp.block_size);
 			threads[i] = std::thread(find_first_of_block<ForwardIt1, ForwardIt2>(), block_start,
@@ -1893,7 +1893,7 @@ namespace parallel {
 		ForwardIt1 block_end = beg1;
 		ForwardIt1 last = end1;
 
-		for(int i = 0; i < (Tp.num_threads - 1); i++) {
+		for(unsigned int i = 0; i < (Tp.num_threads - 1); i++) {
 
 			std::advance(block_end, Tp.block_size);
 			threads[i] = std::thread(find_first_of_block2<ForwardIt1, ForwardIt2, BinaryOp>(),
@@ -1994,7 +1994,7 @@ namespace parallel {
 		ForwardIt1 block_end2 = beg1;
 		ForwardIt1 last = end1;
 
-		for(int i = 0; i < (Tp.num_threads - 1); i++) {
+		for(unsigned int i = 0; i < (Tp.num_threads - 1); i++) {
 
 			std::advance(block_end, Tp.block_size);
 			block_end2 = block_end;
@@ -2048,7 +2048,7 @@ namespace parallel {
 		ForwardIt1 block_end2 = beg1;
 		ForwardIt1 last = end1;
 
-		for(int i = 0; i < (Tp.num_threads - 1); i++) {
+		for(unsigned int i = 0; i < (Tp.num_threads - 1); i++) {
 
 			std::advance(block_end, Tp.block_size);
 			block_end2 = block_end;
@@ -2152,7 +2152,7 @@ namespace parallel {
 		ForwardIt block_end2 = beg;
 		ForwardIt last = end;
 
-		for(int i = 0; i < (Tp.num_threads - 1); i++) {
+		for(unsigned int i = 0; i < (Tp.num_threads - 1); i++) {
 
 			std::advance(block_end, Tp.block_size);
 			block_end2 = block_end;
@@ -2204,7 +2204,7 @@ namespace parallel {
 		ForwardIt block_end2 = beg;
 		ForwardIt last = end;
 
-		for(int i = 0; i < (Tp.num_threads - 1); i++) {
+		for(unsigned int i = 0; i < (Tp.num_threads - 1); i++) {
 
 			std::advance(block_end, Tp.block_size);
 			block_end2 = block_end;
@@ -2308,7 +2308,7 @@ namespace parallel {
 		ForwardIt1 block_end2 = beg1;
 		ForwardIt1 last = end1;
 
-		for(int i = 0; i < (Tp.num_threads - 1); i++) {
+		for(unsigned int i = 0; i < (Tp.num_threads - 1); i++) {
 
 			std::advance(block_end, Tp.block_size);
 			block_end2 = block_end;
@@ -2362,7 +2362,7 @@ namespace parallel {
 		ForwardIt1 block_end2 = beg1;
 		ForwardIt1 last = end1;
 
-		for(int i = 0; i < (Tp.num_threads - 1); i++) {
+		for(unsigned int i = 0; i < (Tp.num_threads - 1); i++) {
 
 			std::advance(block_end, Tp.block_size);
 			block_end2 = block_end;
@@ -2466,7 +2466,7 @@ namespace parallel {
 		InputIt2 block_start2 = beg2;
 		InputIt1 last = end1;
 
-		for(int i = 0; i < (Tp.num_threads - 1); i++) {
+		for(unsigned int i = 0; i < (Tp.num_threads - 1); i++) {
 
 			std::advance(block_end, Tp.block_size);
 			threads[i] = std::thread(mismatch_block<InputIt1, InputIt2>(), block_start, block_end,
@@ -2515,7 +2515,7 @@ namespace parallel {
 		InputIt2 block_start2 = beg2;
 		InputIt1 last = end1;
 
-		for(int i = 0; i < (Tp.num_threads - 1); i++) {
+		for(unsigned int i = 0; i < (Tp.num_threads - 1); i++) {
 
 			std::advance(block_end, Tp.block_size);
 			threads[i] = std::thread(mismatch_block2<InputIt1, InputIt2, BinaryOperator>(),
@@ -2581,7 +2581,7 @@ namespace parallel {
 		InputIt block_end = beg;
 		InputIt last = end;
 
-		for(int i = 0; i < (Tp.num_threads - 1); i++) {
+		for(unsigned int i = 0; i < (Tp.num_threads - 1); i++) {
 
 			std::advance(block_end, Tp.block_size);
 			threads[i] = std::thread(count_block<InputIt, T>(), block_start, block_end, val,
@@ -2641,7 +2641,7 @@ namespace parallel {
 		InputIt block_end = beg;
 		InputIt last = end;
 
-		for(int i = 0; i < (Tp.num_threads - 1); i++) {
+		for(unsigned int i = 0; i < (Tp.num_threads - 1); i++) {
 
 			std::advance(block_end, Tp.block_size);
 			threads[i] = std::thread(count_if_block<InputIt, UnaryPredicate>(), block_start,
@@ -2702,7 +2702,7 @@ namespace parallel {
 		InputIt block_end = beg;
 		InputIt last = end;
 
-		for(int i = 0; i < (Tp.num_threads - 1); i++) {
+		for(unsigned int i = 0; i < (Tp.num_threads - 1); i++) {
 
 			std::advance(block_end, Tp.block_size);
 			threads[i] = std::thread(all_of_block<InputIt, UnaryPredicate>(), block_start,
@@ -2765,7 +2765,7 @@ namespace parallel {
 		InputIt block_end = beg;
 		InputIt last = end;
 
-		for(int i = 0; i < (Tp.num_threads - 1); i++) {
+		for(unsigned int i = 0; i < (Tp.num_threads - 1); i++) {
 
 			std::advance(block_end, Tp.block_size);
 			threads[i] = std::thread(any_of_block<InputIt, UnaryPredicate>(), block_start,
@@ -2825,7 +2825,7 @@ namespace parallel {
 		InputIt block_end = beg;
 		InputIt last = end;
 
-		for(int i = 0; i < (Tp.num_threads - 1); i++) {
+		for(unsigned int i = 0; i < (Tp.num_threads - 1); i++) {
 
 			std::advance(block_end, Tp.block_size);
 			threads[i] = std::thread(none_of_block<InputIt, UnaryPredicate>(), block_start,
@@ -2941,7 +2941,7 @@ namespace parallel {
 		InputIt2 block_start2 = beg2;
 		InputIt last = end1;
 
-		for(int i = 0; i < (Tp.num_threads - 1); i++) {
+		for(unsigned int i = 0; i < (Tp.num_threads - 1); i++) {
 
 			std::advance(block_end, Tp.block_size);
 
@@ -3034,7 +3034,7 @@ namespace parallel {
 		InputIt2 block_start2 = beg2;
 		InputIt last = end1;
 
-		for(int i = 0; i < (Tp.num_threads - 1); i++) {
+		for(unsigned int i = 0; i < (Tp.num_threads - 1); i++) {
 
 			std::advance(block_end, Tp.block_size);
 
@@ -3106,7 +3106,7 @@ namespace parallel {
 		InputIt last = end1;
 		InputIt2 last2 = end2;
 
-		for(int i = 0; i < (Tp.num_threads - 1); i++) {
+		for(unsigned int i = 0; i < (Tp.num_threads - 1); i++) {
 
 			std::advance(block_end, Tp.block_size);
 			std::advance(block_end2, Tp.block_size);
@@ -3178,7 +3178,7 @@ namespace parallel {
 		InputIt last = end1;
 		InputIt2 last2 = end2;
 
-		for(int i = 0; i < (Tp.num_threads - 1); i++) {
+		for(unsigned int i = 0; i < (Tp.num_threads - 1); i++) {
 
 			std::advance(block_end, Tp.block_size);
 			std::advance(block_end2, Tp.block_size);
@@ -3238,7 +3238,7 @@ namespace parallel {
 
 		ForwardIt last = end;
 
-		for(int i = 0; i < (Tp.num_threads - 1); i++) {
+		for(unsigned int i = 0; i < (Tp.num_threads - 1); i++) {
 
 			std::advance(block_end, Tp.block_size);
 
@@ -3305,7 +3305,7 @@ namespace parallel {
 
 		ForwardIt last = end;
 
-		for(int i = 0; i < (Tp.num_threads - 1); i++) {
+		for(unsigned int i = 0; i < (Tp.num_threads - 1); i++) {
 
 			std::advance(block_end, Tp.block_size);
 
@@ -3370,7 +3370,7 @@ namespace parallel {
 
 		ForwardIt last = end;
 
-		for(int i = 0; i < (Tp.num_threads - 1); i++) {
+		for(unsigned int i = 0; i < (Tp.num_threads - 1); i++) {
 
 			std::advance(block_end, Tp.block_size);
 
@@ -3437,7 +3437,7 @@ namespace parallel {
 
 		ForwardIt last = end;
 
-		for(int i = 0; i < (Tp.num_threads - 1); i++) {
+		for(unsigned int i = 0; i < (Tp.num_threads - 1); i++) {
 
 			std::advance(block_end, Tp.block_size);
 
@@ -3510,7 +3510,7 @@ namespace parallel {
 
 		ForwardIt last = end;
 
-		for(int i = 0; i < (Tp.num_threads - 1); i++) {
+		for(unsigned int i = 0; i < (Tp.num_threads - 1); i++) {
 
 			std::advance(block_end, Tp.block_size);
 
@@ -3593,7 +3593,7 @@ namespace parallel {
 
 		ForwardIt last = end;
 
-		for(int i = 0; i < (Tp.num_threads - 1); i++) {
+		for(unsigned int i = 0; i < (Tp.num_threads - 1); i++) {
 
 			std::advance(block_end, Tp.block_size);
 
@@ -3709,7 +3709,7 @@ namespace parallel {
 		InputIt block_end = beg;
 		OutputIt block_start2 = beg2;
 
-		for(int i = 0; i < (Tp.num_threads - 1); i++) {
+		for(unsigned int i = 0; i < (Tp.num_threads - 1); i++) {
 
 			std::advance(block_end, Tp.block_size);
 
@@ -3781,7 +3781,7 @@ namespace parallel {
 		InputIt block_end = beg;
 		OutputIt block_start2 = beg2;
 
-		for(int i = 0; i < (Tp.num_threads - 1); i++) {
+		for(unsigned int i = 0; i < (Tp.num_threads - 1); i++) {
 
 			std::advance(block_end, Tp.block_size);
 			Size cnt = static_cast<Size>((block_end - block_start));
@@ -3830,7 +3830,7 @@ namespace parallel {
 		InputIt block_start = beg;
 		InputIt block_end = beg;
 
-		for(int i = 0; i < (Tp.num_threads - 1); i++) {
+		for(unsigned int i = 0; i < (Tp.num_threads - 1); i++) {
 
 			std::advance(block_end, Tp.block_size);
 
@@ -3849,7 +3849,7 @@ namespace parallel {
 		//redo for copy. not exactly load balanced but works :)
 		OutputIt block_start2 = beg2;
 		OutputIt block_end2 = beg2;
-		for(int i = 0; i < (Tp.num_threads - 1); i++) {
+		for(unsigned int i = 0; i < (Tp.num_threads - 1); i++) {
 
 			std::advance(block_end2, output[i].size());
 			threads2[i] = std::thread(copy_if_block<InputIt, OutputIt, UnaryPred>(), block_start2,
@@ -3910,7 +3910,7 @@ namespace parallel {
 		std::vector < std::thread > threads(Tp.num_threads - 1);
 		ForwardIt block_start = beg;
 		ForwardIt block_end = beg;
-		for(int i = 0; i < (Tp.num_threads - 1); i++) {
+		for(unsigned int i = 0; i < (Tp.num_threads - 1); i++) {
 
 			std::advance(block_end, Tp.block_size);
 			threads[i] = std::thread(replace_block<ForwardIt, T>(), block_start, block_end,
@@ -3966,7 +3966,7 @@ namespace parallel {
 		std::vector < std::thread > threads(Tp.num_threads - 1);
 		ForwardIt block_start = beg;
 		ForwardIt block_end = beg;
-		for(int i = 0; i < (Tp.num_threads - 1); i++) {
+		for(unsigned int i = 0; i < (Tp.num_threads - 1); i++) {
 
 			std::advance(block_end, Tp.block_size);
 			threads[i] = std::thread(replace_if_block<ForwardIt, UnaryPred, T>(), block_start,
@@ -4030,7 +4030,7 @@ namespace parallel {
 		InputIt block_start = beg;
 		InputIt block_end = beg;
 		OutputIt block_start2 = beg2;
-		for(int i = 0; i < (Tp.num_threads - 1); i++) {
+		for(unsigned int i = 0; i < (Tp.num_threads - 1); i++) {
 
 			std::advance(block_end, Tp.block_size);
 			threads[i] = std::thread(replace_copy_block<InputIt, OutputIt, T>(), block_start,
@@ -4097,7 +4097,7 @@ namespace parallel {
 		InputIt block_start = beg;
 		InputIt block_end = beg;
 		OutputIt block_start2 = beg2;
-		for(int i = 0; i < (Tp.num_threads - 1); i++) {
+		for(unsigned int i = 0; i < (Tp.num_threads - 1); i++) {
 
 			std::advance(block_end, Tp.block_size);
 			threads[i] = std::thread(replace_copy_if_block<InputIt, OutputIt, UnaryPred, T>(),
@@ -4181,7 +4181,7 @@ namespace parallel {
 		ForwardIt block_start = beg;
 		ForwardIt block_end = beg;
 
-		for(int i = 0; i < (Tp.num_threads - 1); i++) {
+		for(unsigned int i = 0; i < (Tp.num_threads - 1); i++) {
 
 			std::advance(block_end, Tp.block_size);
 			threads[i] = std::thread(is_sorted_block<ForwardIt>(), block_start, (block_end + 1),
@@ -4219,7 +4219,7 @@ namespace parallel {
 		ForwardIt block_start = beg;
 		ForwardIt block_end = beg;
 
-		for(int i = 0; i < (Tp.num_threads - 1); i++) {
+		for(unsigned int i = 0; i < (Tp.num_threads - 1); i++) {
 
 			std::advance(block_end, Tp.block_size);
 			threads[i] = std::thread(is_sorted_block2<ForwardIt, BinaryPred>(), block_start,
@@ -4313,7 +4313,7 @@ namespace parallel {
 		ForwardIt block_start = beg;
 		ForwardIt block_end = beg;
 
-		for(int i = 0; i < (Tp.num_threads - 1); i++) {
+		for(unsigned int i = 0; i < (Tp.num_threads - 1); i++) {
 
 			std::advance(block_end, Tp.block_size);
 			threads[i] = std::thread(is_sorted_until_block<ForwardIt>(), block_start,
@@ -4353,7 +4353,7 @@ namespace parallel {
 		ForwardIt block_start = beg;
 		ForwardIt block_end = beg;
 
-		for(int i = 0; i < (Tp.num_threads - 1); i++) {
+		for(unsigned int i = 0; i < (Tp.num_threads - 1); i++) {
 
 			std::advance(block_end, Tp.block_size);
 			threads[i] = std::thread(is_sorted_until_block2<ForwardIt, BinaryPred>(), block_start,
@@ -4423,7 +4423,7 @@ namespace parallel {
 		std::vector < std::thread > threads(Tp.num_threads - 1);
 		BidirIt block_start = beg;
 		BidirIt block_end = beg;
-		for(int i = 0; i < (Tp.num_threads - 1); i++) {
+		for(unsigned int i = 0; i < (Tp.num_threads - 1); i++) {
 
 			std::advance(block_end, Tp.block_size);
 			threads[i] = std::thread(reverse_block<BidirIt>(), block_start, block_end, beg, end,
@@ -4477,7 +4477,7 @@ namespace parallel {
 		ForwardIt1 block_end = beg1;
 		ForwardIt2 block_start2 = beg2;
 		ForwardIt2 block_end2 = beg2;
-		for(int i = 0; i < (Tp.num_threads - 1); i++) {
+		for(unsigned int i = 0; i < (Tp.num_threads - 1); i++) {
 
 			std::advance(block_end, Tp.block_size);
 			std::advance(block_end2, Tp.block_size);
