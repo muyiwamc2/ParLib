@@ -3332,7 +3332,8 @@ namespace parallel {
 		if(Tp.num_threads < 2)
 			return std::count_if(beg, end, p);
 		std::vector < std::thread > threads(Tp.num_threads - 1);
-		std::vector<std::future<typename std::iterator_traits<InputIt>::difference_type>> futures(Tp.num_threads - 1);
+		std::vector<std::future<typename std::iterator_traits<InputIt>::difference_type>> futures(
+				Tp.num_threads - 1);
 		std::vector<typename std::iterator_traits<InputIt>::difference_type> output(Tp.num_threads);
 		InputIt block_start = beg;
 		InputIt block_end = beg;
@@ -4083,36 +4084,36 @@ namespace parallel {
 		ForwardIt block_end = beg;
 
 		ForwardIt last = end;
-		if(Tp.tTypes==ThreadTypes::standard){
-		for(unsigned int i = 0; i < (Tp.num_threads - 1); i++) {
+		if(Tp.tTypes == ThreadTypes::standard) {
+			for(unsigned int i = 0; i < (Tp.num_threads - 1); i++) {
 
-			std::advance(block_end, Tp.block_size);
+				std::advance(block_end, Tp.block_size);
 
-			threads[i] = std::thread(max_element_block<ForwardIt>(), block_start, block_end,
-					std::ref(output[i]),
-					typename std::iterator_traits<ForwardIt>::iterator_category());
-			block_start = block_end;
-
-		}
-		max_element_block<ForwardIt>()(block_start, last, std::ref(output[Tp.num_threads - 1]),
-				typename std::iterator_traits<ForwardIt>::iterator_category());
-		std::for_each(threads.begin(), threads.end(), std::mem_fn(&std::thread::join));
-		}
-		if(Tp.tTypes==ThreadTypes::async){
-				for(unsigned int i = 0; i < (Tp.num_threads - 1); i++) {
-
-					std::advance(block_end, Tp.block_size);
-
-					futures[i] = std::async(std::launch::async,max_element_block<ForwardIt>(), block_start, block_end,
-							std::ref(output[i]),
-							typename std::iterator_traits<ForwardIt>::iterator_category());
-					block_start = block_end;
-
-				}
-				max_element_block<ForwardIt>()(block_start, last, std::ref(output[Tp.num_threads - 1]),
+				threads[i] = std::thread(max_element_block<ForwardIt>(), block_start, block_end,
+						std::ref(output[i]),
 						typename std::iterator_traits<ForwardIt>::iterator_category());
-				std::for_each(futures.begin(), futures.end(), std::mem_fn(&std::future<void>::wait));
-				}
+				block_start = block_end;
+
+			}
+			max_element_block<ForwardIt>()(block_start, last, std::ref(output[Tp.num_threads - 1]),
+					typename std::iterator_traits<ForwardIt>::iterator_category());
+			std::for_each(threads.begin(), threads.end(), std::mem_fn(&std::thread::join));
+		}
+		if(Tp.tTypes == ThreadTypes::async) {
+			for(unsigned int i = 0; i < (Tp.num_threads - 1); i++) {
+
+				std::advance(block_end, Tp.block_size);
+
+				futures[i] = std::async(std::launch::async, max_element_block<ForwardIt>(),
+						block_start, block_end, std::ref(output[i]),
+						typename std::iterator_traits<ForwardIt>::iterator_category());
+				block_start = block_end;
+
+			}
+			max_element_block<ForwardIt>()(block_start, last, std::ref(output[Tp.num_threads - 1]),
+					typename std::iterator_traits<ForwardIt>::iterator_category());
+			std::for_each(futures.begin(), futures.end(), std::mem_fn(&std::future<void>::wait));
+		}
 
 		auto ans =
 				std::max_element(output.begin(), output.end(),
@@ -4167,38 +4168,38 @@ namespace parallel {
 		ForwardIt block_end = beg;
 
 		ForwardIt last = end;
-		if(Tp.tTypes==ThreadTypes::standard){
-		for(unsigned int i = 0; i < (Tp.num_threads - 1); i++) {
+		if(Tp.tTypes == ThreadTypes::standard) {
+			for(unsigned int i = 0; i < (Tp.num_threads - 1); i++) {
 
-			std::advance(block_end, Tp.block_size);
+				std::advance(block_end, Tp.block_size);
 
-			threads[i] = std::thread(max_element_block2<ForwardIt, Comp>(), block_start, block_end,
-					cmp, std::ref(output[i]),
-					typename std::iterator_traits<ForwardIt>::iterator_category());
-			block_start = block_end;
-
-		}
-		max_element_block2<ForwardIt, Comp>()(block_start, last, cmp,
-				std::ref(output[Tp.num_threads - 1]),
-				typename std::iterator_traits<ForwardIt>::iterator_category());
-		std::for_each(threads.begin(), threads.end(), std::mem_fn(&std::thread::join));
-		}
-		if(Tp.tTypes==ThreadTypes::async){
-				for(unsigned int i = 0; i < (Tp.num_threads - 1); i++) {
-
-					std::advance(block_end, Tp.block_size);
-
-					futures[i] = std::async(std::launch::async,max_element_block2<ForwardIt, Comp>(), block_start, block_end,
-							cmp, std::ref(output[i]),
-							typename std::iterator_traits<ForwardIt>::iterator_category());
-					block_start = block_end;
-
-				}
-				max_element_block2<ForwardIt, Comp>()(block_start, last, cmp,
-						std::ref(output[Tp.num_threads - 1]),
+				threads[i] = std::thread(max_element_block2<ForwardIt, Comp>(), block_start,
+						block_end, cmp, std::ref(output[i]),
 						typename std::iterator_traits<ForwardIt>::iterator_category());
-				std::for_each(futures.begin(), futures.end(), std::mem_fn(&std::future<void>::wait));
-				}
+				block_start = block_end;
+
+			}
+			max_element_block2<ForwardIt, Comp>()(block_start, last, cmp,
+					std::ref(output[Tp.num_threads - 1]),
+					typename std::iterator_traits<ForwardIt>::iterator_category());
+			std::for_each(threads.begin(), threads.end(), std::mem_fn(&std::thread::join));
+		}
+		if(Tp.tTypes == ThreadTypes::async) {
+			for(unsigned int i = 0; i < (Tp.num_threads - 1); i++) {
+
+				std::advance(block_end, Tp.block_size);
+
+				futures[i] = std::async(std::launch::async, max_element_block2<ForwardIt, Comp>(),
+						block_start, block_end, cmp, std::ref(output[i]),
+						typename std::iterator_traits<ForwardIt>::iterator_category());
+				block_start = block_end;
+
+			}
+			max_element_block2<ForwardIt, Comp>()(block_start, last, cmp,
+					std::ref(output[Tp.num_threads - 1]),
+					typename std::iterator_traits<ForwardIt>::iterator_category());
+			std::for_each(futures.begin(), futures.end(), std::mem_fn(&std::future<void>::wait));
+		}
 
 		auto ans =
 				std::max_element(output.begin(), output.end(),
@@ -4250,36 +4251,36 @@ namespace parallel {
 		ForwardIt block_end = beg;
 
 		ForwardIt last = end;
-		if(Tp.tTypes==ThreadTypes::standard){
-		for(unsigned int i = 0; i < (Tp.num_threads - 1); i++) {
+		if(Tp.tTypes == ThreadTypes::standard) {
+			for(unsigned int i = 0; i < (Tp.num_threads - 1); i++) {
 
-			std::advance(block_end, Tp.block_size);
+				std::advance(block_end, Tp.block_size);
 
-			threads[i] = std::thread(min_element_block<ForwardIt>(), block_start, block_end,
-					std::ref(output[i]),
-					typename std::iterator_traits<ForwardIt>::iterator_category());
-			block_start = block_end;
-
-		}
-		min_element_block<ForwardIt>()(block_start, last, std::ref(output[Tp.num_threads - 1]),
-				typename std::iterator_traits<ForwardIt>::iterator_category());
-		std::for_each(threads.begin(), threads.end(), std::mem_fn(&std::thread::join));
-		}
-		if(Tp.tTypes==ThreadTypes::async){
-				for(unsigned int i = 0; i < (Tp.num_threads - 1); i++) {
-
-					std::advance(block_end, Tp.block_size);
-
-					futures[i] = std::async(std::launch::async,min_element_block<ForwardIt>(), block_start, block_end,
-							std::ref(output[i]),
-							typename std::iterator_traits<ForwardIt>::iterator_category());
-					block_start = block_end;
-
-				}
-				min_element_block<ForwardIt>()(block_start, last, std::ref(output[Tp.num_threads - 1]),
+				threads[i] = std::thread(min_element_block<ForwardIt>(), block_start, block_end,
+						std::ref(output[i]),
 						typename std::iterator_traits<ForwardIt>::iterator_category());
-				std::for_each(futures.begin(), futures.end(), std::mem_fn(&std::future<void>::wait));
-				}
+				block_start = block_end;
+
+			}
+			min_element_block<ForwardIt>()(block_start, last, std::ref(output[Tp.num_threads - 1]),
+					typename std::iterator_traits<ForwardIt>::iterator_category());
+			std::for_each(threads.begin(), threads.end(), std::mem_fn(&std::thread::join));
+		}
+		if(Tp.tTypes == ThreadTypes::async) {
+			for(unsigned int i = 0; i < (Tp.num_threads - 1); i++) {
+
+				std::advance(block_end, Tp.block_size);
+
+				futures[i] = std::async(std::launch::async, min_element_block<ForwardIt>(),
+						block_start, block_end, std::ref(output[i]),
+						typename std::iterator_traits<ForwardIt>::iterator_category());
+				block_start = block_end;
+
+			}
+			min_element_block<ForwardIt>()(block_start, last, std::ref(output[Tp.num_threads - 1]),
+					typename std::iterator_traits<ForwardIt>::iterator_category());
+			std::for_each(futures.begin(), futures.end(), std::mem_fn(&std::future<void>::wait));
+		}
 
 		auto ans =
 				std::min_element(output.begin(), output.end(),
@@ -4335,38 +4336,38 @@ namespace parallel {
 
 		ForwardIt last = end;
 
-		if(Tp.tTypes==ThreadTypes::standard){
-		for(unsigned int i = 0; i < (Tp.num_threads - 1); i++) {
+		if(Tp.tTypes == ThreadTypes::standard) {
+			for(unsigned int i = 0; i < (Tp.num_threads - 1); i++) {
 
-			std::advance(block_end, Tp.block_size);
+				std::advance(block_end, Tp.block_size);
 
-			threads[i] = std::thread(min_element_block2<ForwardIt, Comp>(), block_start, block_end,
-					cmp, std::ref(output[i]),
-					typename std::iterator_traits<ForwardIt>::iterator_category());
-			block_start = block_end;
-
-		}
-		min_element_block2<ForwardIt, Comp>()(block_start, last, cmp,
-				std::ref(output[Tp.num_threads - 1]),
-				typename std::iterator_traits<ForwardIt>::iterator_category());
-		std::for_each(threads.begin(), threads.end(), std::mem_fn(&std::thread::join));
-		}
-		if(Tp.tTypes==ThreadTypes::async){
-				for(unsigned int i = 0; i < (Tp.num_threads - 1); i++) {
-
-					std::advance(block_end, Tp.block_size);
-
-					futures[i] = std::async(std::launch::async,min_element_block2<ForwardIt, Comp>(), block_start, block_end,
-							cmp, std::ref(output[i]),
-							typename std::iterator_traits<ForwardIt>::iterator_category());
-					block_start = block_end;
-
-				}
-				min_element_block2<ForwardIt, Comp>()(block_start, last, cmp,
-						std::ref(output[Tp.num_threads - 1]),
+				threads[i] = std::thread(min_element_block2<ForwardIt, Comp>(), block_start,
+						block_end, cmp, std::ref(output[i]),
 						typename std::iterator_traits<ForwardIt>::iterator_category());
-				std::for_each(futures.begin(), futures.end(), std::mem_fn(&std::future<void>::wait));
-				}
+				block_start = block_end;
+
+			}
+			min_element_block2<ForwardIt, Comp>()(block_start, last, cmp,
+					std::ref(output[Tp.num_threads - 1]),
+					typename std::iterator_traits<ForwardIt>::iterator_category());
+			std::for_each(threads.begin(), threads.end(), std::mem_fn(&std::thread::join));
+		}
+		if(Tp.tTypes == ThreadTypes::async) {
+			for(unsigned int i = 0; i < (Tp.num_threads - 1); i++) {
+
+				std::advance(block_end, Tp.block_size);
+
+				futures[i] = std::async(std::launch::async, min_element_block2<ForwardIt, Comp>(),
+						block_start, block_end, cmp, std::ref(output[i]),
+						typename std::iterator_traits<ForwardIt>::iterator_category());
+				block_start = block_end;
+
+			}
+			min_element_block2<ForwardIt, Comp>()(block_start, last, cmp,
+					std::ref(output[Tp.num_threads - 1]),
+					typename std::iterator_traits<ForwardIt>::iterator_category());
+			std::for_each(futures.begin(), futures.end(), std::mem_fn(&std::future<void>::wait));
+		}
 
 		auto ans =
 				std::min_element(output.begin(), output.end(),
@@ -4426,38 +4427,38 @@ namespace parallel {
 		ForwardIt block_end = beg;
 
 		ForwardIt last = end;
-		if(Tp.tTypes==ThreadTypes::standard){
-		for(unsigned int i = 0; i < (Tp.num_threads - 1); i++) {
+		if(Tp.tTypes == ThreadTypes::standard) {
+			for(unsigned int i = 0; i < (Tp.num_threads - 1); i++) {
 
-			std::advance(block_end, Tp.block_size);
+				std::advance(block_end, Tp.block_size);
 
-			threads[i] = std::thread(minmax_element_block<ForwardIt>(), block_start, block_end,
-					std::ref(output1[i]), std::ref(output2[i]),
-					typename std::iterator_traits<ForwardIt>::iterator_category());
-			block_start = block_end;
-
-		}
-		minmax_element_block<ForwardIt>()(block_start, last, std::ref(output1[Tp.num_threads - 1]),
-				std::ref(output2[Tp.num_threads - 1]),
-				typename std::iterator_traits<ForwardIt>::iterator_category());
-		std::for_each(threads.begin(), threads.end(), std::mem_fn(&std::thread::join));
-		}
-		if(Tp.tTypes==ThreadTypes::async){
-				for(unsigned int i = 0; i < (Tp.num_threads - 1); i++) {
-
-					std::advance(block_end, Tp.block_size);
-
-					futures[i] = std::async(std::launch::async,minmax_element_block<ForwardIt>(), block_start, block_end,
-							std::ref(output1[i]), std::ref(output2[i]),
-							typename std::iterator_traits<ForwardIt>::iterator_category());
-					block_start = block_end;
-
-				}
-				minmax_element_block<ForwardIt>()(block_start, last, std::ref(output1[Tp.num_threads - 1]),
-						std::ref(output2[Tp.num_threads - 1]),
+				threads[i] = std::thread(minmax_element_block<ForwardIt>(), block_start, block_end,
+						std::ref(output1[i]), std::ref(output2[i]),
 						typename std::iterator_traits<ForwardIt>::iterator_category());
-				std::for_each(futures.begin(), futures.end(), std::mem_fn(&std::future<void>::wait));
-				}
+				block_start = block_end;
+
+			}
+			minmax_element_block<ForwardIt>()(block_start, last,
+					std::ref(output1[Tp.num_threads - 1]), std::ref(output2[Tp.num_threads - 1]),
+					typename std::iterator_traits<ForwardIt>::iterator_category());
+			std::for_each(threads.begin(), threads.end(), std::mem_fn(&std::thread::join));
+		}
+		if(Tp.tTypes == ThreadTypes::async) {
+			for(unsigned int i = 0; i < (Tp.num_threads - 1); i++) {
+
+				std::advance(block_end, Tp.block_size);
+
+				futures[i] = std::async(std::launch::async, minmax_element_block<ForwardIt>(),
+						block_start, block_end, std::ref(output1[i]), std::ref(output2[i]),
+						typename std::iterator_traits<ForwardIt>::iterator_category());
+				block_start = block_end;
+
+			}
+			minmax_element_block<ForwardIt>()(block_start, last,
+					std::ref(output1[Tp.num_threads - 1]), std::ref(output2[Tp.num_threads - 1]),
+					typename std::iterator_traits<ForwardIt>::iterator_category());
+			std::for_each(futures.begin(), futures.end(), std::mem_fn(&std::future<void>::wait));
+		}
 
 		auto ans1 =
 				std::min_element(output1.begin(), output1.end(),
@@ -4527,38 +4528,39 @@ namespace parallel {
 		ForwardIt block_end = beg;
 
 		ForwardIt last = end;
-		if(Tp.tTypes==ThreadTypes::standard){
-		for(unsigned int i = 0; i < (Tp.num_threads - 1); i++) {
+		if(Tp.tTypes == ThreadTypes::standard) {
+			for(unsigned int i = 0; i < (Tp.num_threads - 1); i++) {
 
-			std::advance(block_end, Tp.block_size);
+				std::advance(block_end, Tp.block_size);
 
-			threads[i] = std::thread(minmax_element_block2<ForwardIt, Comp>(), block_start,
-					block_end, cmp, std::ref(output1[i]), std::ref(output2[i]),
-					typename std::iterator_traits<ForwardIt>::iterator_category());
-			block_start = block_end;
-
-		}
-		minmax_element_block2<ForwardIt, Comp>()(block_start, last, cmp,
-				std::ref(output1[Tp.num_threads - 1]), std::ref(output2[Tp.num_threads - 1]),
-				typename std::iterator_traits<ForwardIt>::iterator_category());
-		std::for_each(threads.begin(), threads.end(), std::mem_fn(&std::thread::join));
-		}
-		if(Tp.tTypes==ThreadTypes::async){
-				for(unsigned int i = 0; i < (Tp.num_threads - 1); i++) {
-
-					std::advance(block_end, Tp.block_size);
-
-						futures[i] = std::async(std::launch::async,minmax_element_block2<ForwardIt, Comp>(), block_start,
-							block_end, cmp, std::ref(output1[i]), std::ref(output2[i]),
-							typename std::iterator_traits<ForwardIt>::iterator_category());
-					block_start = block_end;
-
-				}
-				minmax_element_block2<ForwardIt, Comp>()(block_start, last, cmp,
-						std::ref(output1[Tp.num_threads - 1]), std::ref(output2[Tp.num_threads - 1]),
+				threads[i] = std::thread(minmax_element_block2<ForwardIt, Comp>(), block_start,
+						block_end, cmp, std::ref(output1[i]), std::ref(output2[i]),
 						typename std::iterator_traits<ForwardIt>::iterator_category());
-				std::for_each(futures.begin(), futures.end(), std::mem_fn(&std::future<void>::wait));
-				}
+				block_start = block_end;
+
+			}
+			minmax_element_block2<ForwardIt, Comp>()(block_start, last, cmp,
+					std::ref(output1[Tp.num_threads - 1]), std::ref(output2[Tp.num_threads - 1]),
+					typename std::iterator_traits<ForwardIt>::iterator_category());
+			std::for_each(threads.begin(), threads.end(), std::mem_fn(&std::thread::join));
+		}
+		if(Tp.tTypes == ThreadTypes::async) {
+			for(unsigned int i = 0; i < (Tp.num_threads - 1); i++) {
+
+				std::advance(block_end, Tp.block_size);
+
+				futures[i] = std::async(std::launch::async,
+						minmax_element_block2<ForwardIt, Comp>(), block_start, block_end, cmp,
+						std::ref(output1[i]), std::ref(output2[i]),
+						typename std::iterator_traits<ForwardIt>::iterator_category());
+				block_start = block_end;
+
+			}
+			minmax_element_block2<ForwardIt, Comp>()(block_start, last, cmp,
+					std::ref(output1[Tp.num_threads - 1]), std::ref(output2[Tp.num_threads - 1]),
+					typename std::iterator_traits<ForwardIt>::iterator_category());
+			std::for_each(futures.begin(), futures.end(), std::mem_fn(&std::future<void>::wait));
+		}
 
 		auto ans1 =
 				std::min_element(output1.begin(), output1.end(),
@@ -4662,42 +4664,42 @@ namespace parallel {
 		InputIt block_end = beg;
 		OutputIt block_start2 = beg2;
 
-		if(Tp.tTypes==ThreadTypes::standard){
-		for(unsigned int i = 0; i < (Tp.num_threads - 1); i++) {
+		if(Tp.tTypes == ThreadTypes::standard) {
+			for(unsigned int i = 0; i < (Tp.num_threads - 1); i++) {
 
-			std::advance(block_end, Tp.block_size);
+				std::advance(block_end, Tp.block_size);
 
-			threads[i] = std::thread(copy_block<InputIt, OutputIt>(), block_start, block_end,
-					block_start2, std::ref(output[i]),
-					typename std::iterator_traits<InputIt>::iterator_category());
-
-			block_start = block_end;
-			std::advance(block_start2, Tp.block_size);
-
-		}
-		copy_block<InputIt, OutputIt>()(block_start, end, block_start2,
-				std::ref(output[Tp.num_threads - 1]),
-				typename std::iterator_traits<InputIt>::iterator_category());
-		std::for_each(threads.begin(), threads.end(), std::mem_fn(&std::thread::join));
-		}
-		if(Tp.tTypes==ThreadTypes::async){
-				for(unsigned int i = 0; i < (Tp.num_threads - 1); i++) {
-
-					std::advance(block_end, Tp.block_size);
-
-					futures[i] = std::async(std::launch::async,copy_block<InputIt, OutputIt>(), block_start, block_end,
-							block_start2, std::ref(output[i]),
-							typename std::iterator_traits<InputIt>::iterator_category());
-
-					block_start = block_end;
-					std::advance(block_start2, Tp.block_size);
-
-				}
-				copy_block<InputIt, OutputIt>()(block_start, end, block_start2,
-						std::ref(output[Tp.num_threads - 1]),
+				threads[i] = std::thread(copy_block<InputIt, OutputIt>(), block_start, block_end,
+						block_start2, std::ref(output[i]),
 						typename std::iterator_traits<InputIt>::iterator_category());
-				std::for_each(futures.begin(), futures.end(), std::mem_fn(&std::future<void>::wait));
-				}
+
+				block_start = block_end;
+				std::advance(block_start2, Tp.block_size);
+
+			}
+			copy_block<InputIt, OutputIt>()(block_start, end, block_start2,
+					std::ref(output[Tp.num_threads - 1]),
+					typename std::iterator_traits<InputIt>::iterator_category());
+			std::for_each(threads.begin(), threads.end(), std::mem_fn(&std::thread::join));
+		}
+		if(Tp.tTypes == ThreadTypes::async) {
+			for(unsigned int i = 0; i < (Tp.num_threads - 1); i++) {
+
+				std::advance(block_end, Tp.block_size);
+
+				futures[i] = std::async(std::launch::async, copy_block<InputIt, OutputIt>(),
+						block_start, block_end, block_start2, std::ref(output[i]),
+						typename std::iterator_traits<InputIt>::iterator_category());
+
+				block_start = block_end;
+				std::advance(block_start2, Tp.block_size);
+
+			}
+			copy_block<InputIt, OutputIt>()(block_start, end, block_start2,
+					std::ref(output[Tp.num_threads - 1]),
+					typename std::iterator_traits<InputIt>::iterator_category());
+			std::for_each(futures.begin(), futures.end(), std::mem_fn(&std::future<void>::wait));
+		}
 
 		OutputIt last = (output[Tp.num_threads - 1]).first;
 
@@ -4750,49 +4752,49 @@ namespace parallel {
 		}
 
 		std::vector < std::thread > threads(Tp.num_threads - 1);
-		std::vector < std::future<void>> futures(Tp.num_threads - 1);
+		std::vector<std::future<void>> futures(Tp.num_threads - 1);
 		std::vector<std::pair<OutputIt, bool>> output(Tp.num_threads);
 		InputIt block_start = beg;
 		InputIt block_end = beg;
 		OutputIt block_start2 = beg2;
-		if(Tp.tTypes==ThreadTypes::standard){
-		for(unsigned int i = 0; i < (Tp.num_threads - 1); i++) {
+		if(Tp.tTypes == ThreadTypes::standard) {
+			for(unsigned int i = 0; i < (Tp.num_threads - 1); i++) {
 
-			std::advance(block_end, Tp.block_size);
-			Size cnt = static_cast<Size>((block_end - block_start));
-			threads[i] = std::thread(copy_n_block<InputIt, Size, OutputIt>(), block_start, cnt,
-					block_start2, std::ref(output[i]),
-					typename std::iterator_traits<InputIt>::iterator_category());
-
-			block_start = block_end;
-			std::advance(block_start2, Tp.block_size);
-
-		}
-		Size cnt2 = static_cast<Size>(end - block_start);
-		copy_n_block<InputIt, Size, OutputIt>()(block_start, cnt2, block_start2,
-				std::ref(output[Tp.num_threads - 1]),
-				typename std::iterator_traits<InputIt>::iterator_category());
-		std::for_each(threads.begin(), threads.end(), std::mem_fn(&std::thread::join));
-		}
-		if(Tp.tTypes==ThreadTypes::async){
-				for(unsigned int i = 0; i < (Tp.num_threads - 1); i++) {
-
-					std::advance(block_end, Tp.block_size);
-					Size cnt = static_cast<Size>((block_end - block_start));
-					futures[i] = std::async(std::launch::async,copy_n_block<InputIt, Size, OutputIt>(), block_start, cnt,
-							block_start2, std::ref(output[i]),
-							typename std::iterator_traits<InputIt>::iterator_category());
-
-					block_start = block_end;
-					std::advance(block_start2, Tp.block_size);
-
-				}
-				Size cnt2 = static_cast<Size>(end - block_start);
-				copy_n_block<InputIt, Size, OutputIt>()(block_start, cnt2, block_start2,
-						std::ref(output[Tp.num_threads - 1]),
+				std::advance(block_end, Tp.block_size);
+				Size cnt = static_cast<Size>((block_end - block_start));
+				threads[i] = std::thread(copy_n_block<InputIt, Size, OutputIt>(), block_start, cnt,
+						block_start2, std::ref(output[i]),
 						typename std::iterator_traits<InputIt>::iterator_category());
-				std::for_each(futures.begin(), futures.end(), std::mem_fn(&std::future<void>::wait));
-				}
+
+				block_start = block_end;
+				std::advance(block_start2, Tp.block_size);
+
+			}
+			Size cnt2 = static_cast<Size>(end - block_start);
+			copy_n_block<InputIt, Size, OutputIt>()(block_start, cnt2, block_start2,
+					std::ref(output[Tp.num_threads - 1]),
+					typename std::iterator_traits<InputIt>::iterator_category());
+			std::for_each(threads.begin(), threads.end(), std::mem_fn(&std::thread::join));
+		}
+		if(Tp.tTypes == ThreadTypes::async) {
+			for(unsigned int i = 0; i < (Tp.num_threads - 1); i++) {
+
+				std::advance(block_end, Tp.block_size);
+				Size cnt = static_cast<Size>((block_end - block_start));
+				futures[i] = std::async(std::launch::async, copy_n_block<InputIt, Size, OutputIt>(),
+						block_start, cnt, block_start2, std::ref(output[i]),
+						typename std::iterator_traits<InputIt>::iterator_category());
+
+				block_start = block_end;
+				std::advance(block_start2, Tp.block_size);
+
+			}
+			Size cnt2 = static_cast<Size>(end - block_start);
+			copy_n_block<InputIt, Size, OutputIt>()(block_start, cnt2, block_start2,
+					std::ref(output[Tp.num_threads - 1]),
+					typename std::iterator_traits<InputIt>::iterator_category());
+			std::for_each(futures.begin(), futures.end(), std::mem_fn(&std::future<void>::wait));
+		}
 
 		OutputIt last = (output[Tp.num_threads - 1]).first;
 
@@ -4827,76 +4829,78 @@ namespace parallel {
 		std::vector<std::vector<InputIt>> output(Tp.num_threads);
 		InputIt block_start = beg;
 		InputIt block_end = beg;
-		if(Tp.tTypes==ThreadTypes::standard){
-		for(unsigned int i = 0; i < (Tp.num_threads - 1); i++) {
+		if(Tp.tTypes == ThreadTypes::standard) {
+			for(unsigned int i = 0; i < (Tp.num_threads - 1); i++) {
 
-			std::advance(block_end, Tp.block_size);
+				std::advance(block_end, Tp.block_size);
 
-			threads[i] = std::thread(copy_if_block<InputIt, OutputIt, UnaryPred>(), block_start,
-					block_end, p, std::ref(output[i]),
+				threads[i] = std::thread(copy_if_block<InputIt, OutputIt, UnaryPred>(), block_start,
+						block_end, p, std::ref(output[i]),
+						typename std::iterator_traits<InputIt>::iterator_category());
+
+				block_start = block_end;
+
+			}
+			copy_if_block<InputIt, OutputIt, UnaryPred>()(block_start, end, p,
+					std::ref(output[Tp.num_threads - 1]),
 					typename std::iterator_traits<InputIt>::iterator_category());
+			std::for_each(threads.begin(), threads.end(), std::mem_fn(&std::thread::join));
 
-			block_start = block_end;
+			//redo for copy. not exactly load balanced but works :)
+			OutputIt block_start2 = beg2;
+			OutputIt block_end2 = beg2;
+			for(unsigned int i = 0; i < (Tp.num_threads - 1); i++) {
 
-		}
-		copy_if_block<InputIt, OutputIt, UnaryPred>()(block_start, end, p,
-				std::ref(output[Tp.num_threads - 1]),
-				typename std::iterator_traits<InputIt>::iterator_category());
-		std::for_each(threads.begin(), threads.end(), std::mem_fn(&std::thread::join));
+				std::advance(block_end2, output[i].size());
+				threads2[i] = std::thread(copy_if_block<InputIt, OutputIt, UnaryPred>(),
+						block_start2, std::ref(output[i]),
+						typename std::iterator_traits<InputIt>::iterator_category());
 
-		//redo for copy. not exactly load balanced but works :)
-		OutputIt block_start2 = beg2;
-		OutputIt block_end2 = beg2;
-		for(unsigned int i = 0; i < (Tp.num_threads - 1); i++) {
-
-			std::advance(block_end2, output[i].size());
-			threads2[i] = std::thread(copy_if_block<InputIt, OutputIt, UnaryPred>(), block_start2,
-					std::ref(output[i]),
+				block_start2 = block_end2;
+			}
+			copy_if_block<InputIt, OutputIt, UnaryPred>()(block_start2,
+					std::ref(output[Tp.num_threads - 1]),
 					typename std::iterator_traits<InputIt>::iterator_category());
-
-			block_start2 = block_end2;
-		}
-		copy_if_block<InputIt, OutputIt, UnaryPred>()(block_start2,
-				std::ref(output[Tp.num_threads - 1]),
-				typename std::iterator_traits<InputIt>::iterator_category());
-		std::for_each(threads2.begin(), threads2.end(), std::mem_fn(&std::thread::join));
+			std::for_each(threads2.begin(), threads2.end(), std::mem_fn(&std::thread::join));
 		}
 
 		//same for async
-		if(Tp.tTypes==ThreadTypes::async){
-				for(unsigned int i = 0; i < (Tp.num_threads - 1); i++) {
+		if(Tp.tTypes == ThreadTypes::async) {
+			for(unsigned int i = 0; i < (Tp.num_threads - 1); i++) {
 
-					std::advance(block_end, Tp.block_size);
+				std::advance(block_end, Tp.block_size);
 
-					futures[i] = std::async(std::launch::async,copy_if_block<InputIt, OutputIt, UnaryPred>(), block_start,
-							block_end, p, std::ref(output[i]),
-							typename std::iterator_traits<InputIt>::iterator_category());
-
-					block_start = block_end;
-
-				}
-				copy_if_block<InputIt, OutputIt, UnaryPred>()(block_start, end, p,
-						std::ref(output[Tp.num_threads - 1]),
+				futures[i] = std::async(std::launch::async,
+						copy_if_block<InputIt, OutputIt, UnaryPred>(), block_start, block_end, p,
+						std::ref(output[i]),
 						typename std::iterator_traits<InputIt>::iterator_category());
-				std::for_each(futures.begin(), futures.end(), std::mem_fn(&std::future<void>::wait));
 
-				//redo for copy. not exactly load balanced but works :)
-				OutputIt block_start2 = beg2;
-				OutputIt block_end2 = beg2;
-				for(unsigned int i = 0; i < (Tp.num_threads - 1); i++) {
+				block_start = block_end;
 
-					std::advance(block_end2, output[i].size());
-					futures2[i] = std::async(std::launch::async,copy_if_block<InputIt, OutputIt, UnaryPred>(), block_start2,
-							std::ref(output[i]),
-							typename std::iterator_traits<InputIt>::iterator_category());
+			}
+			copy_if_block<InputIt, OutputIt, UnaryPred>()(block_start, end, p,
+					std::ref(output[Tp.num_threads - 1]),
+					typename std::iterator_traits<InputIt>::iterator_category());
+			std::for_each(futures.begin(), futures.end(), std::mem_fn(&std::future<void>::wait));
 
-					block_start2 = block_end2;
-				}
-				copy_if_block<InputIt, OutputIt, UnaryPred>()(block_start2,
-						std::ref(output[Tp.num_threads - 1]),
+			//redo for copy. not exactly load balanced but works :)
+			OutputIt block_start2 = beg2;
+			OutputIt block_end2 = beg2;
+			for(unsigned int i = 0; i < (Tp.num_threads - 1); i++) {
+
+				std::advance(block_end2, output[i].size());
+				futures2[i] = std::async(std::launch::async,
+						copy_if_block<InputIt, OutputIt, UnaryPred>(), block_start2,
+						std::ref(output[i]),
 						typename std::iterator_traits<InputIt>::iterator_category());
-				std::for_each(futures2.begin(), futures2.end(), std::mem_fn(&std::future<void>::wait));
-				}
+
+				block_start2 = block_end2;
+			}
+			copy_if_block<InputIt, OutputIt, UnaryPred>()(block_start2,
+					std::ref(output[Tp.num_threads - 1]),
+					typename std::iterator_traits<InputIt>::iterator_category());
+			std::for_each(futures2.begin(), futures2.end(), std::mem_fn(&std::future<void>::wait));
+		}
 
 		auto ans = std::accumulate(output.begin(), output.end(), 0,
 				[&](int & val, std::vector<InputIt> & vec)->int {return val+ vec.size();});
@@ -4947,34 +4951,36 @@ namespace parallel {
 		std::vector < std::future<void> > futures(Tp.num_threads - 1);
 		ForwardIt block_start = beg;
 		ForwardIt block_end = beg;
-		if(Tp.tTypes==ThreadTypes::standard){
-		for(unsigned int i = 0; i < (Tp.num_threads - 1); i++) {
+		if(Tp.tTypes == ThreadTypes::standard) {
+			for(unsigned int i = 0; i < (Tp.num_threads - 1); i++) {
 
-			std::advance(block_end, Tp.block_size);
-			threads[i] = std::thread(replace_block<ForwardIt, T>(), block_start, block_end,
-					std::ref(old_value), std::ref(new_value),
-					typename std::iterator_traits<ForwardIt>::iterator_category());
-
-			block_start = block_end;
-		}
-		replace_block<ForwardIt, T>()(block_start, end, std::ref(old_value), std::ref(new_value),
-				typename std::iterator_traits<ForwardIt>::iterator_category());
-		std::for_each(threads.begin(), threads.end(), std::mem_fn(&std::thread::join));
-		}
-		if(Tp.tTypes==ThreadTypes::async){
-				for(unsigned int i = 0; i < (Tp.num_threads - 1); i++) {
-
-					std::advance(block_end, Tp.block_size);
-					futures[i] = std::async(std::launch::async,replace_block<ForwardIt, T>(), block_start, block_end,
-							std::ref(old_value), std::ref(new_value),
-							typename std::iterator_traits<ForwardIt>::iterator_category());
-
-					block_start = block_end;
-				}
-				replace_block<ForwardIt, T>()(block_start, end, std::ref(old_value), std::ref(new_value),
+				std::advance(block_end, Tp.block_size);
+				threads[i] = std::thread(replace_block<ForwardIt, T>(), block_start, block_end,
+						std::ref(old_value), std::ref(new_value),
 						typename std::iterator_traits<ForwardIt>::iterator_category());
-				std::for_each(futures.begin(), futures.end(), std::mem_fn(&std::future<void>::wait));
-				}
+
+				block_start = block_end;
+			}
+			replace_block<ForwardIt, T>()(block_start, end, std::ref(old_value),
+					std::ref(new_value),
+					typename std::iterator_traits<ForwardIt>::iterator_category());
+			std::for_each(threads.begin(), threads.end(), std::mem_fn(&std::thread::join));
+		}
+		if(Tp.tTypes == ThreadTypes::async) {
+			for(unsigned int i = 0; i < (Tp.num_threads - 1); i++) {
+
+				std::advance(block_end, Tp.block_size);
+				futures[i] = std::async(std::launch::async, replace_block<ForwardIt, T>(),
+						block_start, block_end, std::ref(old_value), std::ref(new_value),
+						typename std::iterator_traits<ForwardIt>::iterator_category());
+
+				block_start = block_end;
+			}
+			replace_block<ForwardIt, T>()(block_start, end, std::ref(old_value),
+					std::ref(new_value),
+					typename std::iterator_traits<ForwardIt>::iterator_category());
+			std::for_each(futures.begin(), futures.end(), std::mem_fn(&std::future<void>::wait));
+		}
 
 	}
 	/**
@@ -5020,34 +5026,35 @@ namespace parallel {
 		std::vector < std::future<void> > futures(Tp.num_threads - 1);
 		ForwardIt block_start = beg;
 		ForwardIt block_end = beg;
-		if(Tp.tTypes==ThreadTypes::standard){
-		for(unsigned int i = 0; i < (Tp.num_threads - 1); i++) {
+		if(Tp.tTypes == ThreadTypes::standard) {
+			for(unsigned int i = 0; i < (Tp.num_threads - 1); i++) {
 
-			std::advance(block_end, Tp.block_size);
-			threads[i] = std::thread(replace_if_block<ForwardIt, UnaryPred, T>(), block_start,
-					block_end, p, std::ref(new_value),
-					typename std::iterator_traits<ForwardIt>::iterator_category());
-
-			block_start = block_end;
-		}
-		replace_if_block<ForwardIt, UnaryPred, T>()(block_start, end, p, std::ref(new_value),
-				typename std::iterator_traits<ForwardIt>::iterator_category());
-		std::for_each(threads.begin(), threads.end(), std::mem_fn(&std::thread::join));
-		}
-		if(Tp.tTypes==ThreadTypes::async){
-				for(unsigned int i = 0; i < (Tp.num_threads - 1); i++) {
-
-					std::advance(block_end, Tp.block_size);
-					futures[i] = std::async(std::launch::async,replace_if_block<ForwardIt, UnaryPred, T>(), block_start,
-							block_end, p, std::ref(new_value),
-							typename std::iterator_traits<ForwardIt>::iterator_category());
-
-					block_start = block_end;
-				}
-				replace_if_block<ForwardIt, UnaryPred, T>()(block_start, end, p, std::ref(new_value),
+				std::advance(block_end, Tp.block_size);
+				threads[i] = std::thread(replace_if_block<ForwardIt, UnaryPred, T>(), block_start,
+						block_end, p, std::ref(new_value),
 						typename std::iterator_traits<ForwardIt>::iterator_category());
-				std::for_each(futures.begin(), futures.end(), std::mem_fn(&std::future<void>::wait));
-				}
+
+				block_start = block_end;
+			}
+			replace_if_block<ForwardIt, UnaryPred, T>()(block_start, end, p, std::ref(new_value),
+					typename std::iterator_traits<ForwardIt>::iterator_category());
+			std::for_each(threads.begin(), threads.end(), std::mem_fn(&std::thread::join));
+		}
+		if(Tp.tTypes == ThreadTypes::async) {
+			for(unsigned int i = 0; i < (Tp.num_threads - 1); i++) {
+
+				std::advance(block_end, Tp.block_size);
+				futures[i] = std::async(std::launch::async,
+						replace_if_block<ForwardIt, UnaryPred, T>(), block_start, block_end, p,
+						std::ref(new_value),
+						typename std::iterator_traits<ForwardIt>::iterator_category());
+
+				block_start = block_end;
+			}
+			replace_if_block<ForwardIt, UnaryPred, T>()(block_start, end, p, std::ref(new_value),
+					typename std::iterator_traits<ForwardIt>::iterator_category());
+			std::for_each(futures.begin(), futures.end(), std::mem_fn(&std::future<void>::wait));
+		}
 
 	}
 
@@ -5096,43 +5103,43 @@ namespace parallel {
 		}
 
 		std::vector < std::thread > threads(Tp.num_threads - 1);
-		std::vector < std::future<void>> futures(Tp.num_threads - 1);
+		std::vector<std::future<void>> futures(Tp.num_threads - 1);
 		std::vector<std::pair<OutputIt, bool>> output(Tp.num_threads);
 		InputIt block_start = beg;
 		InputIt block_end = beg;
 		OutputIt block_start2 = beg2;
-		if(Tp.tTypes==ThreadTypes::standard){
-		for(unsigned int i = 0; i < (Tp.num_threads - 1); i++) {
+		if(Tp.tTypes == ThreadTypes::standard) {
+			for(unsigned int i = 0; i < (Tp.num_threads - 1); i++) {
 
-			std::advance(block_end, Tp.block_size);
-			threads[i] = std::thread(replace_copy_block<InputIt, OutputIt, T>(), block_start,
-					block_end, block_start2, std::ref(old_value), std::ref(new_value),
-					std::ref(output[i]),
-					typename std::iterator_traits<InputIt>::iterator_category());
-			std::advance(block_start2, Tp.block_size);
-			block_start = block_end;
-		}
-		replace_copy_block<InputIt, OutputIt, T>()(block_start, end, block_start2,
-				std::ref(old_value), std::ref(new_value), std::ref(output[Tp.num_threads - 1]),
-				typename std::iterator_traits<InputIt>::iterator_category());
-		std::for_each(threads.begin(), threads.end(), std::mem_fn(&std::thread::join));
-		}
-		if(Tp.tTypes==ThreadTypes::async){
-				for(unsigned int i = 0; i < (Tp.num_threads - 1); i++) {
-
-					std::advance(block_end, Tp.block_size);
-					futures[i] = std::async(std::launch::async,replace_copy_block<InputIt, OutputIt, T>(), block_start,
-							block_end, block_start2, std::ref(old_value), std::ref(new_value),
-							std::ref(output[i]),
-							typename std::iterator_traits<InputIt>::iterator_category());
-					std::advance(block_start2, Tp.block_size);
-					block_start = block_end;
-				}
-				replace_copy_block<InputIt, OutputIt, T>()(block_start, end, block_start2,
-						std::ref(old_value), std::ref(new_value), std::ref(output[Tp.num_threads - 1]),
+				std::advance(block_end, Tp.block_size);
+				threads[i] = std::thread(replace_copy_block<InputIt, OutputIt, T>(), block_start,
+						block_end, block_start2, std::ref(old_value), std::ref(new_value),
+						std::ref(output[i]),
 						typename std::iterator_traits<InputIt>::iterator_category());
-				std::for_each(futures.begin(), futures.end(), std::mem_fn(&std::future<void>::wait));
-				}
+				std::advance(block_start2, Tp.block_size);
+				block_start = block_end;
+			}
+			replace_copy_block<InputIt, OutputIt, T>()(block_start, end, block_start2,
+					std::ref(old_value), std::ref(new_value), std::ref(output[Tp.num_threads - 1]),
+					typename std::iterator_traits<InputIt>::iterator_category());
+			std::for_each(threads.begin(), threads.end(), std::mem_fn(&std::thread::join));
+		}
+		if(Tp.tTypes == ThreadTypes::async) {
+			for(unsigned int i = 0; i < (Tp.num_threads - 1); i++) {
+
+				std::advance(block_end, Tp.block_size);
+				futures[i] = std::async(std::launch::async,
+						replace_copy_block<InputIt, OutputIt, T>(), block_start, block_end,
+						block_start2, std::ref(old_value), std::ref(new_value), std::ref(output[i]),
+						typename std::iterator_traits<InputIt>::iterator_category());
+				std::advance(block_start2, Tp.block_size);
+				block_start = block_end;
+			}
+			replace_copy_block<InputIt, OutputIt, T>()(block_start, end, block_start2,
+					std::ref(old_value), std::ref(new_value), std::ref(output[Tp.num_threads - 1]),
+					typename std::iterator_traits<InputIt>::iterator_category());
+			std::for_each(futures.begin(), futures.end(), std::mem_fn(&std::future<void>::wait));
+		}
 
 		return (output[Tp.num_threads - 1]).first;
 
@@ -5188,39 +5195,38 @@ namespace parallel {
 		InputIt block_start = beg;
 		InputIt block_end = beg;
 		OutputIt block_start2 = beg2;
-		if(Tp.tTypes==ThreadTypes::standard){
-		for(unsigned int i = 0; i < (Tp.num_threads - 1); i++) {
+		if(Tp.tTypes == ThreadTypes::standard) {
+			for(unsigned int i = 0; i < (Tp.num_threads - 1); i++) {
 
-			std::advance(block_end, Tp.block_size);
-			threads[i] = std::thread(replace_copy_if_block<InputIt, OutputIt, UnaryPred, T>(),
-					block_start, block_end, block_start2, p, std::ref(new_value),
-					std::ref(output[i]),
-					typename std::iterator_traits<InputIt>::iterator_category());
-			std::advance(block_start2, Tp.block_size);
-			block_start = block_end;
-		}
-		replace_copy_if_block<InputIt, OutputIt, UnaryPred, T>()(block_start, end, block_start2, p,
-				std::ref(new_value), std::ref(output[Tp.num_threads - 1]),
-				typename std::iterator_traits<InputIt>::iterator_category());
-		std::for_each(threads.begin(), threads.end(), std::mem_fn(&std::thread::join));
-		}
-		if(Tp.tTypes==ThreadTypes::async){
-				for(unsigned int i = 0; i < (Tp.num_threads - 1); i++) {
-
-					std::advance(block_end, Tp.block_size);
-					futures[i] = std::async(std::launch::async,replace_copy_if_block<InputIt, OutputIt, UnaryPred, T>(),
-							block_start, block_end, block_start2, p, std::ref(new_value),
-							std::ref(output[i]),
-							typename std::iterator_traits<InputIt>::iterator_category());
-					std::advance(block_start2, Tp.block_size);
-					block_start = block_end;
-				}
-				replace_copy_if_block<InputIt, OutputIt, UnaryPred, T>()(block_start, end, block_start2, p,
-						std::ref(new_value), std::ref(output[Tp.num_threads - 1]),
+				std::advance(block_end, Tp.block_size);
+				threads[i] = std::thread(replace_copy_if_block<InputIt, OutputIt, UnaryPred, T>(),
+						block_start, block_end, block_start2, p, std::ref(new_value),
+						std::ref(output[i]),
 						typename std::iterator_traits<InputIt>::iterator_category());
-				std::for_each(futures.begin(), futures.end(), std::mem_fn(&std::future<void>::wait));
-				}
+				std::advance(block_start2, Tp.block_size);
+				block_start = block_end;
+			}
+			replace_copy_if_block<InputIt, OutputIt, UnaryPred, T>()(block_start, end, block_start2,
+					p, std::ref(new_value), std::ref(output[Tp.num_threads - 1]),
+					typename std::iterator_traits<InputIt>::iterator_category());
+			std::for_each(threads.begin(), threads.end(), std::mem_fn(&std::thread::join));
+		}
+		if(Tp.tTypes == ThreadTypes::async) {
+			for(unsigned int i = 0; i < (Tp.num_threads - 1); i++) {
 
+				std::advance(block_end, Tp.block_size);
+				futures[i] = std::async(std::launch::async,
+						replace_copy_if_block<InputIt, OutputIt, UnaryPred, T>(), block_start,
+						block_end, block_start2, p, std::ref(new_value), std::ref(output[i]),
+						typename std::iterator_traits<InputIt>::iterator_category());
+				std::advance(block_start2, Tp.block_size);
+				block_start = block_end;
+			}
+			replace_copy_if_block<InputIt, OutputIt, UnaryPred, T>()(block_start, end, block_start2,
+					p, std::ref(new_value), std::ref(output[Tp.num_threads - 1]),
+					typename std::iterator_traits<InputIt>::iterator_category());
+			std::for_each(futures.begin(), futures.end(), std::mem_fn(&std::future<void>::wait));
+		}
 
 		return (output[Tp.num_threads - 1]).first;
 
@@ -5288,21 +5294,38 @@ namespace parallel {
 		}
 
 		std::vector < std::thread > threads(Tp.num_threads - 1);
+		std::vector < std::future<void> > futures(Tp.num_threads - 1);
 		std::vector<int> output(Tp.num_threads);
 		ForwardIt block_start = beg;
 		ForwardIt block_end = beg;
 
-		for(unsigned int i = 0; i < (Tp.num_threads - 1); i++) {
+		if(Tp.tTypes == ThreadTypes::standard) {
+			for(unsigned int i = 0; i < (Tp.num_threads - 1); i++) {
 
-			std::advance(block_end, Tp.block_size);
-			threads[i] = std::thread(is_sorted_block<ForwardIt>(), block_start, (block_end + 1),
-					std::ref(output[i]),
+				std::advance(block_end, Tp.block_size);
+				threads[i] = std::thread(is_sorted_block<ForwardIt>(), block_start, (block_end + 1),
+						std::ref(output[i]),
+						typename std::iterator_traits<ForwardIt>::iterator_category());
+				block_start = block_end;
+			}
+			is_sorted_block<ForwardIt>()(block_start, end, std::ref(output[Tp.num_threads - 1]),
 					typename std::iterator_traits<ForwardIt>::iterator_category());
-			block_start = block_end;
+			std::for_each(threads.begin(), threads.end(), std::mem_fn(&std::thread::join));
 		}
-		is_sorted_block<ForwardIt>()(block_start, end, std::ref(output[Tp.num_threads - 1]),
-				typename std::iterator_traits<ForwardIt>::iterator_category());
-		std::for_each(threads.begin(), threads.end(), std::mem_fn(&std::thread::join));
+		if(Tp.tTypes == ThreadTypes::async) {
+			for(unsigned int i = 0; i < (Tp.num_threads - 1); i++) {
+
+				std::advance(block_end, Tp.block_size);
+				futures[i] = std::async(std::launch::async, is_sorted_block<ForwardIt>(),
+						block_start, (block_end + 1), std::ref(output[i]),
+						typename std::iterator_traits<ForwardIt>::iterator_category());
+				block_start = block_end;
+			}
+			is_sorted_block<ForwardIt>()(block_start, end, std::ref(output[Tp.num_threads - 1]),
+					typename std::iterator_traits<ForwardIt>::iterator_category());
+			std::for_each(futures.begin(), futures.end(), std::mem_fn(&std::future<void>::wait));
+		}
+
 		return std::all_of(output.begin(), output.end(), [](int v)->bool {return v==1;});
 
 	}
@@ -5326,23 +5349,43 @@ namespace parallel {
 		}
 
 		std::vector < std::thread > threads(Tp.num_threads - 1);
+		std::vector < std::future<void> > futures(Tp.num_threads - 1);
 		std::vector<int> output(Tp.num_threads);
 		ForwardIt block_start = beg;
 		ForwardIt block_end = beg;
 
-		for(unsigned int i = 0; i < (Tp.num_threads - 1); i++) {
+		if(Tp.tTypes == ThreadTypes::standard) {
+			for(unsigned int i = 0; i < (Tp.num_threads - 1); i++) {
 
-			std::advance(block_end, Tp.block_size);
-			threads[i] = std::thread(is_sorted_block2<ForwardIt, BinaryPred>(), block_start,
-					(block_end + 1), p, std::ref(output[i]),
+				std::advance(block_end, Tp.block_size);
+				threads[i] = std::thread(is_sorted_block2<ForwardIt, BinaryPred>(), block_start,
+						(block_end + 1), p, std::ref(output[i]),
+						typename std::iterator_traits<ForwardIt>::iterator_category());
+
+				block_start = block_end;
+			}
+			is_sorted_block2<ForwardIt, BinaryPred>()(block_start, end, p,
+					std::ref(output[Tp.num_threads - 1]),
 					typename std::iterator_traits<ForwardIt>::iterator_category());
-
-			block_start = block_end;
+			std::for_each(threads.begin(), threads.end(), std::mem_fn(&std::thread::join));
 		}
-		is_sorted_block2<ForwardIt, BinaryPred>()(block_start, end, p,
-				std::ref(output[Tp.num_threads - 1]),
-				typename std::iterator_traits<ForwardIt>::iterator_category());
-		std::for_each(threads.begin(), threads.end(), std::mem_fn(&std::thread::join));
+		if(Tp.tTypes == ThreadTypes::async) {
+			for(unsigned int i = 0; i < (Tp.num_threads - 1); i++) {
+
+				std::advance(block_end, Tp.block_size);
+				futures[i] = std::async(std::launch::async,
+						is_sorted_block2<ForwardIt, BinaryPred>(), block_start, (block_end + 1), p,
+						std::ref(output[i]),
+						typename std::iterator_traits<ForwardIt>::iterator_category());
+
+				block_start = block_end;
+			}
+			is_sorted_block2<ForwardIt, BinaryPred>()(block_start, end, p,
+					std::ref(output[Tp.num_threads - 1]),
+					typename std::iterator_traits<ForwardIt>::iterator_category());
+			std::for_each(futures.begin(), futures.end(), std::mem_fn(&std::future<void>::wait));
+		}
+
 		return std::all_of(output.begin(), output.end(), [](int v)->bool {return v==1;});
 
 	}
@@ -5420,21 +5463,39 @@ namespace parallel {
 		}
 
 		std::vector < std::thread > threads(Tp.num_threads - 1);
+		std::vector < std::future<void> > futures(Tp.num_threads - 1);
 		std::vector<std::pair<ForwardIt, int>> output(Tp.num_threads);
 		ForwardIt block_start = beg;
 		ForwardIt block_end = beg;
+		if(Tp.tTypes == ThreadTypes::standard) {
+			for(unsigned int i = 0; i < (Tp.num_threads - 1); i++) {
 
-		for(unsigned int i = 0; i < (Tp.num_threads - 1); i++) {
-
-			std::advance(block_end, Tp.block_size);
-			threads[i] = std::thread(is_sorted_until_block<ForwardIt>(), block_start,
-					(block_end + 1), std::ref(output[i]),
+				std::advance(block_end, Tp.block_size);
+				threads[i] = std::thread(is_sorted_until_block<ForwardIt>(), block_start,
+						(block_end + 1), std::ref(output[i]),
+						typename std::iterator_traits<ForwardIt>::iterator_category());
+				block_start = block_end;
+			}
+			is_sorted_until_block<ForwardIt>()(block_start, end,
+					std::ref(output[Tp.num_threads - 1]),
 					typename std::iterator_traits<ForwardIt>::iterator_category());
-			block_start = block_end;
+			std::for_each(threads.begin(), threads.end(), std::mem_fn(&std::thread::join));
 		}
-		is_sorted_until_block<ForwardIt>()(block_start, end, std::ref(output[Tp.num_threads - 1]),
-				typename std::iterator_traits<ForwardIt>::iterator_category());
-		std::for_each(threads.begin(), threads.end(), std::mem_fn(&std::thread::join));
+		if(Tp.tTypes == ThreadTypes::async) {
+			for(unsigned int i = 0; i < (Tp.num_threads - 1); i++) {
+
+				std::advance(block_end, Tp.block_size);
+				futures[i] = std::async(std::launch::async, is_sorted_until_block<ForwardIt>(),
+						block_start, (block_end + 1), std::ref(output[i]),
+						typename std::iterator_traits<ForwardIt>::iterator_category());
+				block_start = block_end;
+			}
+			is_sorted_until_block<ForwardIt>()(block_start, end,
+					std::ref(output[Tp.num_threads - 1]),
+					typename std::iterator_traits<ForwardIt>::iterator_category());
+			std::for_each(futures.begin(), futures.end(), std::mem_fn(&std::future<void>::wait));
+		}
+
 		auto val = std::find_if(output.begin(), output.end(),
 				[](std::pair<ForwardIt,int> &v)->bool {return v.second==0;});
 		return val->first;
@@ -5460,23 +5521,41 @@ namespace parallel {
 		}
 
 		std::vector < std::thread > threads(Tp.num_threads - 1);
+		std::vector < std::future<void> > futures(Tp.num_threads - 1);
 		std::vector<std::pair<ForwardIt, int>> output(Tp.num_threads);
 		ForwardIt block_start = beg;
 		ForwardIt block_end = beg;
+		if(Tp.tTypes == ThreadTypes::standard) {
+			for(unsigned int i = 0; i < (Tp.num_threads - 1); i++) {
 
-		for(unsigned int i = 0; i < (Tp.num_threads - 1); i++) {
+				std::advance(block_end, Tp.block_size);
+				threads[i] = std::thread(is_sorted_until_block2<ForwardIt, BinaryPred>(),
+						block_start, (block_end + 1), p, std::ref(output[i]),
+						typename std::iterator_traits<ForwardIt>::iterator_category());
 
-			std::advance(block_end, Tp.block_size);
-			threads[i] = std::thread(is_sorted_until_block2<ForwardIt, BinaryPred>(), block_start,
-					(block_end + 1), p, std::ref(output[i]),
+				block_start = block_end;
+			}
+			is_sorted_until_block2<ForwardIt, BinaryPred>()(block_start, end, p,
+					std::ref(output[Tp.num_threads - 1]),
 					typename std::iterator_traits<ForwardIt>::iterator_category());
-
-			block_start = block_end;
+			std::for_each(threads.begin(), threads.end(), std::mem_fn(&std::thread::join));
 		}
-		is_sorted_until_block2<ForwardIt, BinaryPred>()(block_start, end, p,
-				std::ref(output[Tp.num_threads - 1]),
-				typename std::iterator_traits<ForwardIt>::iterator_category());
-		std::for_each(threads.begin(), threads.end(), std::mem_fn(&std::thread::join));
+		if(Tp.tTypes == ThreadTypes::async) {
+			for(unsigned int i = 0; i < (Tp.num_threads - 1); i++) {
+
+				std::advance(block_end, Tp.block_size);
+				futures[i] = std::async(is_sorted_until_block2<ForwardIt, BinaryPred>(),
+						block_start, (block_end + 1), p, std::ref(output[i]),
+						typename std::iterator_traits<ForwardIt>::iterator_category());
+
+				block_start = block_end;
+			}
+			is_sorted_until_block2<ForwardIt, BinaryPred>()(block_start, end, p,
+					std::ref(output[Tp.num_threads - 1]),
+					typename std::iterator_traits<ForwardIt>::iterator_category());
+			std::for_each(futures.begin(), futures.end(), std::mem_fn(&std::future<void>::wait));
+		}
+
 		auto val = std::find_if(output.begin(), output.end(),
 				[](std::pair<ForwardIt,int> &v)->bool {return v.second==0;});
 		return val->first;
@@ -5534,19 +5613,38 @@ namespace parallel {
 		}
 
 		std::vector < std::thread > threads(Tp.num_threads - 1);
+		std::vector<std::future<void>> futures(Tp.num_threads - 1);
 		BidirIt block_start = beg;
 		BidirIt block_end = beg;
-		for(unsigned int i = 0; i < (Tp.num_threads - 1); i++) {
 
-			std::advance(block_end, Tp.block_size);
-			threads[i] = std::thread(reverse_block<BidirIt>(), block_start, block_end, beg, end,
+		if(Tp.tTypes == ThreadTypes::standard) {
+			for(unsigned int i = 0; i < (Tp.num_threads - 1); i++) {
+
+				std::advance(block_end, Tp.block_size);
+				threads[i] = std::thread(reverse_block<BidirIt>(), block_start, block_end, beg, end,
+						typename std::iterator_traits<BidirIt>::iterator_category());
+
+				block_start = block_end;
+			}
+			reverse_block<BidirIt>()(block_start, (beg + len), beg, end,
 					typename std::iterator_traits<BidirIt>::iterator_category());
-
-			block_start = block_end;
+			std::for_each(threads.begin(), threads.end(), std::mem_fn(&std::thread::join));
 		}
-		reverse_block<BidirIt>()(block_start, (beg + len), beg, end,
-				typename std::iterator_traits<BidirIt>::iterator_category());
-		std::for_each(threads.begin(), threads.end(), std::mem_fn(&std::thread::join));
+
+		if(Tp.tTypes == ThreadTypes::async) {
+			for(unsigned int i = 0; i < (Tp.num_threads - 1); i++) {
+
+				std::advance(block_end, Tp.block_size);
+				futures[i] = std::async(std::launch::async, reverse_block<BidirIt>(), block_start,
+						block_end, beg, end,
+						typename std::iterator_traits<BidirIt>::iterator_category());
+
+				block_start = block_end;
+			}
+			reverse_block<BidirIt>()(block_start, (beg + len), beg, end,
+					typename std::iterator_traits<BidirIt>::iterator_category());
+			std::for_each(futures.begin(), futures.end(), std::mem_fn(&std::future<void>::wait));
+		}
 
 	}
 
