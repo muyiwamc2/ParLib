@@ -867,9 +867,9 @@ BOOST_AUTO_TEST_SUITE(miscellaneous_tests)
 			t1 = system_clock::now();
 			std::cout << duration_cast < milliseconds > (t1 - t0).count() << "ms\n";
 			v = back;
-			std::cout << "mergesort_mt4: ";
+			std::cout << "parallel::stable_sort: ";
 			t0 = system_clock::now();
-			parallel::mergesort_mt4(v.begin(), v.end());
+			parallel::stable_sort(v.begin(), v.end());
 			t1 = system_clock::now();
 			std::cout << duration_cast < milliseconds > (t1 - t0).count() << "ms\n";
 
