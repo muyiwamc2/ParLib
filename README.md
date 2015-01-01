@@ -23,17 +23,18 @@
 	For example parallel::for_each rather than std::for_each. The arguments should match.
 
 ##Dependencies
-* The ideas used are generic enough that the header file should work for all c++11 compilers that completely implement the STL and then std::thread libraries for
-c++11.Without needing to link with any other library. So far all the conditions for using the std::thread libraries are met for the individual compiler.
+* The ideas used are generic enough that the header file should work for all c++14 compilers that completely implement the STL and then std::thread libraries for c++14.Without needing to link with any other library. So far all the conditions for using the std::thread libraries are met for the individual compiler.
 
 * The test file ParLibTest.cpp uses the boost testing framework and boost test library. 
 * Doxyfile contains doxygen configuration so a documentation can be generated.
 
 * Things left to do:
-	1. Implement the STL functions based on sorting
+
+	1. Implement partition and quicksort
 	2. Improve the Code Documentation.
-	3. Update the README file.
-	4. Include doxygen configuration file
-	5. Include code examples in README.
+	3. Add tests for new code.
+	4. Update the README file.
+	5. Include doxygen configuration file
+	6. Include code examples in README.
 
 
