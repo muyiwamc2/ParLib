@@ -18,9 +18,15 @@
 
 #Simple Parallel STL implementation.
 * This is a header only multi-threaded implementation of some of the STL library in C++ using simple threading primitives.
-	Currently work in progress..
+	Currently work in progress.. about 90% complete :(
 * For all functions implemented should be called with the parallel namespace instead of the normal std namespaces for STL functions.
 	For example parallel::for_each rather than std::for_each. The arguments should match.
+	a concrete example is:
+	```c++
+	#include "ParLib.h"
+	parallel::stable_sort(beg,end);//call to the stable sort algorithm :)
+	
+	```
 
 ##Dependencies
 * The ideas used are generic enough that the header file should work for all c++14 compilers that completely implement the STL and then std::thread libraries for c++14.Without needing to link with any other library. So far all the conditions for using the std::thread libraries are met for the individual compiler.
