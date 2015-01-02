@@ -6284,7 +6284,7 @@ namespace parallel {
 			void stable_sort_helper(RanIt beg, RanIt en, unsigned int N, std::random_access_iterator_tag) {
 
 		auto len = std::distance(beg, en);
-		if(len <= 2048 or N < 2) {
+		if(len <= 8192 or N < 2) {
 			std::stable_sort(beg, en);
 			return;
 		}
