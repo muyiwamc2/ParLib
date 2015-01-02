@@ -68,8 +68,9 @@ namespace parallel {
 			 * @param beg Input iterator to the beginning of the input range
 			 * @param end In put iterator to the end of the input range
 			 */
-			void SetLaunchPolicies(InputIt beg, InputIt end,unsigned long max_thread=mxThread,unsigned long bsize=blksz) {
-				block_size=bsize;
+			void SetLaunchPolicies(InputIt beg, InputIt end, unsigned long max_thread = mxThread,
+								   unsigned long bsize = blksz) {
+				block_size = bsize;
 				tTypes = tT;
 				length = std::distance(beg, end);
 				hardware_threads = std::thread::hardware_concurrency();
@@ -86,8 +87,10 @@ namespace parallel {
 			 *
 			 * @param dist parameter showing the length of the input container for the operation.
 			 */
-			void SetLaunchPolicies(typename std::iterator_traits<InputIt>::difference_type dist,unsigned long max_thread=mxThread,unsigned long bsize=blksz) {
-				block_size=bsize;
+			void SetLaunchPolicies(typename std::iterator_traits<InputIt>::difference_type dist,
+								   unsigned long max_thread = mxThread,
+								   unsigned long bsize = blksz) {
+				block_size = bsize;
 				tTypes = tT;
 				length = dist;
 				hardware_threads = std::thread::hardware_concurrency();
@@ -6376,7 +6379,7 @@ namespace parallel {
 		auto len = std::distance(be1, en1) + std::distance(be2, en2);
 
 		Tp.max_hardware_threads = N;
-		Tp.SetLaunchPolicies(len,N,Tp.block_size);
+		Tp.SetLaunchPolicies(len, N, Tp.block_size);
 		if(!Tp.length)
 			return;
 		if((N < 2) or (Tp.num_threads < 2) or (Tp.length < 2048)) {
@@ -6432,7 +6435,7 @@ namespace parallel {
 		auto len = std::distance(be1, en1) + std::distance(be2, en2);
 
 		Tp.max_hardware_threads = N;
-		Tp.SetLaunchPolicies(len,N,Tp.block_size);
+		Tp.SetLaunchPolicies(len, N, Tp.block_size);
 		if(!Tp.length)
 			return;
 		if((N < 2) or (Tp.num_threads < 2) or (Tp.length < 2048)) {
@@ -6513,83 +6516,109 @@ namespace parallel {
 	 * @return Iterator to the beginning of the block where the predicate is false
 	 */
 	template<typename BiDirIt, typename UnaryPredicate, typename Tpolicy = LaunchPolicies<BiDirIt>>
-				BiDirIt stable_partition_helper(BiDirIt beg, BiDirIt end, UnaryPredicate p, unsigned int N,
-										  std::bidirectional_iterator_tag) {
+			BiDirIt stable_partition_helper(BiDirIt beg, BiDirIt end, UnaryPredicate p, unsigned int N,
+											std::bidirectional_iterator_tag) {
 
-			Tpolicy Tp;
-			auto beg2 = beg;
-			auto end2 = end;
+		Tpolicy Tp;
+		auto beg2 = beg;
+		auto end2 = end;
 
+		Tp.max_hardware_threads = N;
+		Tp.SetLaunchPolicies(beg, end, N);
+		if(!Tp.length)
+			return beg;
+		if((N < 2) or (Tp.num_threads < 2) or (Tp.length < 2048)) {
+			return std::stable_partition(beg, end, p);
 
-			Tp.max_hardware_threads = N;
-			Tp.SetLaunchPolicies(beg, end,N);
-			if(!Tp.length)
-				return beg;
-			if((N < 2) or (Tp.num_threads < 2) or (Tp.length < 2048)) {
-				return std::stable_partition(beg, end,p);
-
-			}
-			auto half = Tp.length / 2;
-			auto mid1 = std::next(beg2, half);
-
-			auto first = std::async(std::launch::async, parallel:: stable_partition_helper<BiDirIt,UnaryPredicate, Tpolicy>,
-								 beg, mid1, p, N - 2,
-								 typename std::iterator_traits<BiDirIt>::iterator_category());
-			auto second = parallel::stable_partition_helper<BiDirIt,UnaryPredicate, Tpolicy>(mid1, end, p,N - 2,
-					typename std::iterator_traits<BiDirIt>::iterator_category());
-			first.wait();
-			auto mid11 = first.get();
-			auto mid22= second.get();
-			auto len11 = std::distance(beg,mid11);
-			auto len22 = std::distance(mid1,mid22);
-			parallel::rotate<BiDirIt,Tpolicy>(mid11,mid1,mid22,N); //swap regions
-
-			return std::next(beg,len11 +len22);
 		}
+		auto half = Tp.length / 2;
+		auto mid1 = std::next(beg2, half);
+
+		auto first = std::async(std::launch::async,
+								parallel::stable_partition_helper<BiDirIt, UnaryPredicate, Tpolicy>, beg, mid1, p,
+								N - 2, typename std::iterator_traits<BiDirIt>::iterator_category());
+		auto second = parallel::stable_partition_helper<BiDirIt, UnaryPredicate, Tpolicy>(mid1, end,
+				p, N - 2, typename std::iterator_traits<BiDirIt>::iterator_category());
+		first.wait();
+		auto mid11 = first.get();
+		auto mid22 = second.get();
+		auto len11 = std::distance(beg, mid11);
+		auto len22 = std::distance(mid1, mid22);
+		parallel::rotate<BiDirIt, Tpolicy>(mid11, mid1, mid22, N); //swap regions
+
+		return std::next(beg, len11 + len22);
+	}
+
 	/**
-		 *   partition algorithm
-		 * @param beg Iterator to the beginning of the range
-		 * @param end Iterator to the end of the range
-		 * @param p Unary Predicate that represents the partion @see STL
-		 * @param N Numbef of threads
-		 * @param
-		 * @return Iterator to the beginning of the block where the predicate is false
-		 */
+	 *   partition algorithm
+	 * @param beg Iterator to the beginning of the range
+	 * @param end Iterator to the end of the range
+	 * @param p Unary Predicate that represents the partion @see STL
+	 * @param N Numbef of threads
+	 * @param
+	 * @return Iterator to the beginning of the block where the predicate is false
+	 */
 	template<typename BiDirIt, typename UnaryPredicate, typename Tpolicy = LaunchPolicies<BiDirIt>>
-					BiDirIt partition_helper(BiDirIt beg, BiDirIt end, UnaryPredicate p, unsigned int N,
-											  std::bidirectional_iterator_tag) {
+			BiDirIt partition_helper(BiDirIt beg, BiDirIt end, UnaryPredicate p, unsigned int N,
+									 std::bidirectional_iterator_tag) {
 
-				Tpolicy Tp;
-				auto beg2 = beg;
-				auto end2 = end;
+		Tpolicy Tp;
+		auto beg2 = beg;
+		auto end2 = end;
 
+		Tp.max_hardware_threads = N;
+		Tp.SetLaunchPolicies(beg, end, N);
+		if(!Tp.length)
+			return beg;
+		if((N < 2) or (Tp.num_threads < 2) or (Tp.length < 2048)) {
+			return std::partition(beg, end, p);
 
-				Tp.max_hardware_threads = N;
-				Tp.SetLaunchPolicies(beg, end,N);
-				if(!Tp.length)
-					return beg;
-				if((N < 2) or (Tp.num_threads < 2) or (Tp.length < 2048)) {
-					return std::partition(beg, end,p);
+		}
+		auto half = Tp.length / 2;
+		auto mid1 = std::next(beg2, half);
 
-				}
-				auto half = Tp.length / 2;
-				auto mid1 = std::next(beg2, half);
+		auto first = std::async(std::launch::async,
+								parallel::stable_partition_helper<BiDirIt, UnaryPredicate, Tpolicy>, beg, mid1, p,
+								N - 2, typename std::iterator_traits<BiDirIt>::iterator_category());
+		auto second = parallel::stable_partition_helper<BiDirIt, UnaryPredicate, Tpolicy>(mid1, end,
+				p, N - 2, typename std::iterator_traits<BiDirIt>::iterator_category());
+		first.wait();
+		auto mid11 = first.get();
+		auto mid22 = second.get();
+		auto len11 = std::distance(beg, mid11);
+		auto len22 = std::distance(mid1, mid22);
+		parallel::rotate<BiDirIt, Tpolicy>(mid11, mid1, mid22, N); //swap regions
 
-				auto first = std::async(std::launch::async, parallel:: stable_partition_helper<BiDirIt,UnaryPredicate, Tpolicy>,
-									 beg, mid1, p, N - 2,
-									 typename std::iterator_traits<BiDirIt>::iterator_category());
-				auto second = parallel::stable_partition_helper<BiDirIt,UnaryPredicate, Tpolicy>(mid1, end, p,N - 2,
-						typename std::iterator_traits<BiDirIt>::iterator_category());
-				first.wait();
-				auto mid11 = first.get();
-				auto mid22= second.get();
-				auto len11 = std::distance(beg,mid11);
-				auto len22 = std::distance(mid1,mid22);
-				parallel::rotate<BiDirIt,Tpolicy>(mid11,mid1,mid22,N); //swap regions
+		return std::next(beg, len11 + len22);
+	}
 
-				return std::next(beg,len11 +len22);
-			}
+	/**
+	 *  actual partition algorithm
+	 * @param beg Iterator to the beginning of the range
+	 * @param end Iterator to the end of the range
+	 * @param p Unary Predicate that represents the partion @see STL
+	 * @param N Numbef of threads
+	 * @param
+	 * @return Iterator to the beginning of the block where the predicate is false
+	 */
+	template<typename BiDirIt, typename UnaryPredicate, typename Tpolicy = LaunchPolicies<BiDirIt>>
+			BiDirIt stable_partition(BiDirIt beg, BiDirIt end, UnaryPredicate p, unsigned int N=std::thread::hardware_concurrency()) {
+		parallel::stable_partition_helper<BiDirIt,UnaryPredicate,Tpolicy>(beg,end,p,N,typename std::iterator_traits<BiDirIt>::iterator_category());
+	}
 
+	/**
+	 *  actual stable partition algorithm
+	 * @param beg Iterator to the beginning of the range
+	 * @param end Iterator to the end of the range
+	 * @param p Unary Predicate that represents the partion @see STL
+	 * @param N Numbef of threads
+	 * @param
+	 * @return Iterator to the beginning of the block where the predicate is false
+	 */
+	template<typename BiDirIt, typename UnaryPredicate, typename Tpolicy = LaunchPolicies<BiDirIt>>
+			BiDirIt partition(BiDirIt beg, BiDirIt end, UnaryPredicate p, unsigned int N=std::thread::hardware_concurrency()) {
+		parallel::partition_helper<BiDirIt,UnaryPredicate,Tpolicy>(beg,end,p,N,typename std::iterator_traits<BiDirIt>::iterator_category());
+	}
 
 }
 

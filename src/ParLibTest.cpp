@@ -823,7 +823,7 @@ BOOST_AUTO_TEST_SUITE(miscellaneous_tests)
 		std::uniform_int_distribution<unsigned int> dist(0,
 				std::numeric_limits<unsigned int>::max());
 
-		std::vector<unsigned int> v, back(40 * 1000000);
+		std::vector<unsigned int> v, back(100 * 1000000);
 		/*std::vector<unsigned int> v2(20 * 10000);
 		 auto len =v2.size()/2 ;
 		 std::iota(v2.begin(),v2.begin()+len,0);
@@ -835,7 +835,7 @@ BOOST_AUTO_TEST_SUITE(miscellaneous_tests)
 		 catch(std::exception &e){
 		 std::cout<<e.what()<<std::endl;
 		 }*/
-		for(int i = 0; i < 5; ++i) {
+		for(int i = 0; i < 1; ++i) {
 			std::cout << "Generating...\n";
 			std::generate_n(back.begin(), back.size(), [&]() {return dist(rng);});
 
