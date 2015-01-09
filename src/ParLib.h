@@ -44,6 +44,7 @@
 #include<iostream>
 #include <cmath>
 #include <exception>
+#include <random>
 namespace parallel {
 	enum class ThreadTypes {
 			standard, async
@@ -6255,7 +6256,7 @@ namespace parallel {
 			void inplace_merge(BiDirIt beg, BiDirIt mid, BiDirIt end, unsigned int N =
 					std::thread::hardware_concurrency()) {
 		;
-		inplace_merge_helper<BiDirIt, Tpolicy>(beg, mid, end, N,
+		inplace_merge_helper<BiDirIt, Tpolicy>(beg, mid, end, std::max(1u, N),
 				typename std::iterator_traits<BiDirIt>::iterator_category());
 	}
 	/**
@@ -6270,7 +6271,7 @@ namespace parallel {
 			void inplace_merge(BiDirIt beg, BiDirIt mid, BiDirIt end, BinaryOp op, unsigned int N =
 					std::thread::hardware_concurrency()) {
 		;
-		inplace_merge_helper<BiDirIt, BinaryOp, Tpolicy>(beg, mid, end, op, N,
+		inplace_merge_helper<BiDirIt, BinaryOp, Tpolicy>(beg, mid, end, op, std::max(1u, N),
 				typename std::iterator_traits<BiDirIt>::iterator_category());
 	}
 	/**
@@ -6338,7 +6339,7 @@ namespace parallel {
 	template<typename RandomIt, typename Tpolicy = LaunchPolicies<RandomIt>>
 			void stable_sort(RandomIt beg, RandomIt en, unsigned int N =
 					std::thread::hardware_concurrency()) {
-		stable_sort_helper<RandomIt, Tpolicy>(beg, en, N,
+		stable_sort_helper<RandomIt, Tpolicy>(beg, en, std::max(1u, N),
 				typename std::iterator_traits<RandomIt>::iterator_category());
 	}
 	/**
@@ -6351,7 +6352,7 @@ namespace parallel {
 	template<typename RandomIt, typename BinaryOp, typename Tpolicy = LaunchPolicies<RandomIt>>
 			void stable_sort(RandomIt beg, RandomIt en, BinaryOp op, unsigned int N =
 					std::thread::hardware_concurrency()) {
-		stable_sort_helper<RandomIt, BinaryOp, Tpolicy>(beg, en, op, N,
+		stable_sort_helper<RandomIt, BinaryOp, Tpolicy>(beg, en, op, std::max(1u, N),
 				typename std::iterator_traits<RandomIt>::iterator_category());
 	}
 	/**
@@ -6480,8 +6481,8 @@ namespace parallel {
 	typename Tpolicy = LaunchPolicies<InputIt1>>
 	void merge(InputIt1 be1, InputIt1 en1, InputIt2 be2, InputIt2 en2, OutputIt start1,
 			   unsigned int N = std::thread::hardware_concurrency()) {
-		parallel::merge_helper<InputIt1, InputIt2, OutputIt, Tpolicy>(be1, en1, be2, en2, start1, N,
-				std::iterator_traits<InputIt1>::iterator_category(),
+		parallel::merge_helper<InputIt1, InputIt2, OutputIt, Tpolicy>(be1, en1, be2, en2, start1,
+				std::max(1u, N), std::iterator_traits<InputIt1>::iterator_category(),
 				std::iterator_traits<InputIt2>::iterator_category(),
 				std::iterator_traits<OutputIt>::iterator_category());
 	}
@@ -6502,7 +6503,7 @@ namespace parallel {
 	void merge(InputIt1 be1, InputIt1 en1, InputIt2 be2, InputIt2 en2, OutputIt start1, BinaryOp op,
 			   unsigned int N = std::thread::hardware_concurrency()) {
 		parallel::merge_helper<InputIt1, InputIt2, OutputIt, BinaryOp, Tpolicy>(be1, en1, be2, en2,
-				start1, op, N, std::iterator_traits<InputIt1>::iterator_category(),
+				start1, op, std::max(1u, N), std::iterator_traits<InputIt1>::iterator_category(),
 				std::iterator_traits<InputIt2>::iterator_category(),
 				std::iterator_traits<OutputIt>::iterator_category());
 	}
@@ -6578,10 +6579,10 @@ namespace parallel {
 		auto mid1 = std::next(beg2, half);
 
 		auto first = std::async(std::launch::async,
-								parallel::stable_partition_helper<BiDirIt, UnaryPredicate, Tpolicy>, beg, mid1, p,
-								N - 2, typename std::iterator_traits<BiDirIt>::iterator_category());
-		auto second = parallel::stable_partition_helper<BiDirIt, UnaryPredicate, Tpolicy>(mid1, end,
-				p, N - 2, typename std::iterator_traits<BiDirIt>::iterator_category());
+								partition_helper<BiDirIt, UnaryPredicate, Tpolicy>, beg, mid1, p, N - 2,
+								typename std::iterator_traits<BiDirIt>::iterator_category());
+		auto second = partition_helper<BiDirIt, UnaryPredicate, Tpolicy>(mid1, end, p, N - 2,
+				typename std::iterator_traits<BiDirIt>::iterator_category());
 		first.wait();
 		auto mid11 = first.get();
 		auto mid22 = second.get();
@@ -6602,8 +6603,10 @@ namespace parallel {
 	 * @return Iterator to the beginning of the block where the predicate is false
 	 */
 	template<typename BiDirIt, typename UnaryPredicate, typename Tpolicy = LaunchPolicies<BiDirIt>>
-			BiDirIt stable_partition(BiDirIt beg, BiDirIt end, UnaryPredicate p, unsigned int N=std::thread::hardware_concurrency()) {
-		parallel::stable_partition_helper<BiDirIt,UnaryPredicate,Tpolicy>(beg,end,p,N,typename std::iterator_traits<BiDirIt>::iterator_category());
+			BiDirIt stable_partition(BiDirIt beg, BiDirIt end, UnaryPredicate p, unsigned int N =
+					std::thread::hardware_concurrency()) {
+		return parallel::stable_partition_helper<BiDirIt, UnaryPredicate, Tpolicy>(beg, end, p,
+				std::max(1u, N), typename std::iterator_traits<BiDirIt>::iterator_category());
 	}
 
 	/**
@@ -6616,8 +6619,219 @@ namespace parallel {
 	 * @return Iterator to the beginning of the block where the predicate is false
 	 */
 	template<typename BiDirIt, typename UnaryPredicate, typename Tpolicy = LaunchPolicies<BiDirIt>>
-			BiDirIt partition(BiDirIt beg, BiDirIt end, UnaryPredicate p, unsigned int N=std::thread::hardware_concurrency()) {
-		parallel::partition_helper<BiDirIt,UnaryPredicate,Tpolicy>(beg,end,p,N,typename std::iterator_traits<BiDirIt>::iterator_category());
+			BiDirIt partition(BiDirIt beg, BiDirIt end, UnaryPredicate p, unsigned int N =
+					std::thread::hardware_concurrency()) {
+		return parallel::partition_helper<BiDirIt, UnaryPredicate, Tpolicy>(beg, end, p,
+				std::max(1u, N), typename std::iterator_traits<BiDirIt>::iterator_category());
+	}
+
+	/**
+	 *
+	 * @param beg Random Access iterator to the beginning of the container
+	 * @param nth the iterator marking the position n for which we want to obtain the selection
+	 * @param end the Random Access iterator to the end of the container
+	 * @param N parameter referring to the max number of threads
+	 * @param
+	 */
+	template<typename RanIt, typename Tpolicy = LaunchPolicies<RanIt> >
+	void nth_element_helper(RanIt beg, RanIt nth, RanIt end, unsigned int N,
+							std::random_access_iterator_tag) {
+		std::random_device rd;
+		std::mt19937 rng(rd());
+
+		//dist(rng);
+		Tpolicy Tp;
+		auto beg2 = beg;
+		auto end2 = end;
+		auto nth_pos = std::distance(beg, nth);
+		Tp.max_hardware_threads = N;
+		std::uniform_int_distribution<unsigned int> dist(0, Tp.length - 1);
+		Tp.SetLaunchPolicies(beg, end, N);
+		if(!Tp.length)
+			return;
+
+		if((N < 2) or (Tp.num_threads < 2) or (Tp.length < 8192)) {
+			std::nth_element(beg, nth, end);
+			return;
+
+		}
+		//select three different pivots
+		std::vector<unsigned int> pivotsIndx { dist(rng), dist(rng), dist(rng) };
+		std::vector<unsigned int> pivots;
+		pivots.emplace_back(*(beg + pivotsIndx[0]));
+		pivots.emplace_back(*(beg + pivotsIndx[1]));
+		pivots.emplace_back(*(beg + pivotsIndx[2]));
+		std::nth_element(begin(pivots), begin(pivots) + 1, end(pivots)); //median
+		//get the unary predicate less than for partition
+		auto UnaryPred = std::bind(std::less<typename std::iterator_traits<RanIt>::value_type>(),
+								   std::placeholders::_1, pivots[1]);
+		auto nPos = parallel::partition<RanIt, decltype(UnaryPred), Tpolicy>(beg, end, UnaryPred,
+				N); //partition based on pivot
+
+		if(std::distance(beg, nPos) == nth_pos)
+			return nPos;
+		if(std::distance(beg, nPos) > nth_pos)
+			return nth_element_helper<RanIt, Tpolicy>(beg, nth, nPos, N,
+					typename std::iterator_traits<RanIt>::iterator_category());
+		return nth_element_helper<RanIt, Tpolicy>(nPos, nth, end, N,
+				typename std::iterator_traits<RanIt>::iterator_category());
+
+	}
+
+	/**
+	 *
+	 * @param beg Random Access iterator to the beginning of the container
+	 * @param nth the iterator marking the position n for which we want to obtain the selection
+	 * @param end the Random Access iterator to the end of the container
+	 * @param op Binary operator that implements the less than operator op(x,y) is true if x<y
+	 * @param N parameter referring to the max number of threads
+	 * @param
+	 */
+	template<typename RanIt, typename BinaryOp, typename Tpolicy = LaunchPolicies<RanIt> >
+	void nth_element_helper(RanIt beg, RanIt nth, RanIt end, BinaryOp op, unsigned int N,
+							std::random_access_iterator_tag) {
+		std::random_device rd;
+		std::mt19937 rng(rd());
+
+		//dist(rng);
+		Tpolicy Tp;
+		auto beg2 = beg;
+		auto end2 = end;
+		auto nth_pos = std::distance(beg, nth);
+		Tp.max_hardware_threads = N;
+		std::uniform_int_distribution<unsigned int> dist(0, Tp.length - 1);
+		Tp.SetLaunchPolicies(beg, end, N);
+		if(!Tp.length)
+			return;
+
+		if((N < 2) or (Tp.num_threads < 2) or (Tp.length < 8192)) {
+			std::nth_element(beg, nth, end, op);
+			return;
+
+		}
+		//select three different pivots
+		std::vector<unsigned int> pivotsIndx { dist(rng), dist(rng), dist(rng) };
+		std::vector<unsigned int> pivots;
+		pivots.emplace_back(*(beg + pivotsIndx[0]));
+		pivots.emplace_back(*(beg + pivotsIndx[1]));
+		pivots.emplace_back(*(beg + pivotsIndx[2]));
+		std::nth_element(begin(pivots), begin(pivots) + 1, end(pivots), op); //median
+		//get the unary predicate less than for partition
+		auto UnaryPred = std::bind(op, std::placeholders::_1, pivots[1]);
+		auto nPos = parallel::partition<RanIt, decltype(UnaryPred), Tpolicy>(beg, end, UnaryPred,
+				N); //partition based on pivot
+
+		if(std::distance(beg, nPos) == nth_pos)
+			return nPos;
+		if(std::distance(beg, nPos) > nth_pos)
+			return parallel::nth_element_helper<RanIt, Tpolicy, BinaryOp>(beg, nth, nPos, op, N,
+					typename std::iterator_traits<RanIt>::iterator_category());
+		return parallel::nth_element_helper<RanIt, Tpolicy, BinaryOp>(nPos, nth, end, op, N,
+				typename std::iterator_traits<RanIt>::iterator_category());
+
+	}
+	template<typename RanIt, typename Tpolicy = LaunchPolicies<RanIt>>
+			void nth_element(RanIt beg, RanIt nth, RanIt end, unsigned int N =
+					std::thread::hardware_concurrency()) {
+		parallel::nth_element_helper<RanIt, Tpolicy>(beg, nth, end, std::max(1u, N),
+				std::iterator_traits<RanIt>::itererator_category());
+	}
+	template<typename RanIt, typename BinaryOp, typename Tpolicy = LaunchPolicies<RanIt>>
+			void nth_element(RanIt beg, RanIt nth, RanIt end, BinaryOp op, unsigned int N =
+					std::thread::hardware_concurrency()) {
+		parallel::nth_element_helper<RanIt, BinaryOp, Tpolicy>(beg, nth, end, op, std::max(1u, N),
+				std::iterator_traits<RanIt>::itererator_category());
+	}
+	/**
+	 * sort algorithm
+	 * @param beg Iterator to the beginning of the range
+	 * @param end Iterator to the end of the range
+	 * @param N parameter used to determine the max number of threads.
+	 * @param used for detecting the right iterator
+	 */
+	template<typename RanIt, typename Tpolicy = LaunchPolicies<RanIt>>
+			void sort_helper(RanIt beg, RanIt end, unsigned int N, std::random_access_iterator_tag) {
+		//use simple ideas from quicksort
+		auto len = std::distance(beg, end);
+		if(len <= 8192 or N < 2) {
+			std::sort(beg, end);
+			return;
+		}
+
+		auto mid = std::next(beg, len / 2);
+		// our implementation has used partition already so the pivot is already
+		parallel::nth_element<RanIt, Tpolicy>(beg, mid, end, N);
+		//recurse on the 2 subproblems
+		auto fn = std::async(std::launch::async, parallel::sort_helper<RanIt, Tpolicy>, beg, mid, N - 2,
+							 typename std::iterator_traits<RanIt>::iterator_category());
+		sort_helper<RanIt, Tpolicy>(mid, end, N - 2,
+				typename std::iterator_traits<RanIt>::iterator_category());
+
+		fn.wait();
+		//std::cout<<N << " finished"<<std::endl;
+
+		//pick pivot
+		//partion
+
+	}
+	/**
+	 *
+	 * @param beg Iterator to the beginning of the Range
+	 * @param end Iterator to the end of the range
+	 * @param op Binary operator implementing the less than over the type referenced by the iterator
+	 * @param N parameter used to determine the number of threads
+	 * @param used to make sure we are using the right kind of iterator.
+	 */
+	template<typename RanIt, typename BinaryOp, typename Tpolicy = LaunchPolicies<RanIt>>
+			void sort_helper(RanIt beg, RanIt end, BinaryOp op, unsigned int N,
+							 std::random_access_iterator_tag) {
+		//use simple ideas from quicksort
+		auto len = std::distance(beg, end);
+		if(len <= 8192 or N < 2) {
+			std::sort(beg, end);
+			return;
+		}
+
+		auto mid = std::next(beg, len / 2);
+		// our implementation has used partition already so the pivot is already
+		parallel::nth_element<RanIt, BinaryOp, Tpolicy>(beg, mid, end, op, N);
+		//recurse on the 2 subproblems
+		auto fn = std::async(std::launch::async, sort_helper<RanIt, BinaryOp, Tpolicy>, beg, mid,
+							 N - 2, typename std::iterator_traits<RanIt>::iterator_category());
+		sort_helper<RanIt, BinaryOp, Tpolicy>(mid, end, op, N - 2,
+				typename std::iterator_traits<RanIt>::iterator_category());
+
+		fn.wait();
+		//std::cout<<N << " finished"<<std::endl;
+
+		//pick pivot
+		//partion
+
+	}
+	/**
+	 * actual sort algorithm
+	 * @param beg Iterator to the beginning of the range
+	 * @param end Iterator to the end of the range
+	 * @param N parameter used to determine the max number of threads.
+	 */
+	template<typename RanIt, typename Tpolicy = LaunchPolicies<RanIt>>
+			void sort(RanIt beg, RanIt end, unsigned int N = std::thread::hardware_concurrency) {
+		parallel::sort_helper<RanIt, Tpolicy>(beg, end, std::max(1u, N),
+				std::iterator_traits<RanIt>::iterator_category());
+	}
+
+	/**
+	 * actual sort algorithm
+	 * @param beg Iterator to the beginning of the range
+	 * @param end Iterator to the end of the range
+	 * @param op Binary operator inmplementing < paradigm for the type refrenced by the iterator
+	 * @param N parameter used to determine the max number of threads.
+	 */
+	template<typename RanIt, typename BinaryOp, typename Tpolicy = LaunchPolicies<RanIt>>
+			void sort(RanIt beg, RanIt end, BinaryOp op,
+					  unsigned int N = std::thread::hardware_concurrency) {
+		parallel::sort_helper<RanIt, BinaryOp, Tpolicy>(beg, end, op, std::max(1u, N),
+				std::iterator_traits<RanIt>::iterator_category());
 	}
 
 }
