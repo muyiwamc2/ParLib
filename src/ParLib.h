@@ -46,9 +46,15 @@
 #include <exception>
 #include <random>
 namespace parallel {
+
 	enum class ThreadTypes {
 			standard, async
 	};
+
+	template<typename T>
+	std::size_t cSizet(T v) {
+		return static_cast<std::size_t>(v);
+	}
 	/**
 	 * @summary This class handles certain threading properties of each algorithm.
 	 */
@@ -64,6 +70,7 @@ namespace parallel {
 			unsigned long max_threads;
 			unsigned long num_threads;
 			unsigned long block_size;
+			unsigned int curr_recurse_depth=0; //recursion depth for algorithms
 			/**
 			 * @summary sets the launch policies for the threads..
 			 * @param beg Input iterator to the beginning of the input range
@@ -102,6 +109,30 @@ namespace parallel {
 				num_threads = std::min(hardware_threads != 0 ? hardware_threads : 2, max_threads);
 				block_size = length / num_threads;
 			}
+
+			ThreadTypes getTypes() const {
+				return tTypes;
+			}
+
+			void setTypes(ThreadTypes types) {
+				tTypes = types;
+			}
+
+			unsigned int getCurrRecurseDepth() const {
+				return curr_recurse_depth;
+			}
+
+			void setCurrRecurseDepth(unsigned int currRecurseDepth) {
+				curr_recurse_depth = currRecurseDepth;
+			}
+
+			unsigned long getBlockSize() const {
+				return block_size;
+			}
+
+			void setBlockSize(unsigned long blockSize) {
+				block_size = blockSize;
+			}
 	};
 	template<typename InputIt>
 	class LaunchPolicies<InputIt, 2048, 0, ThreadTypes::standard> {
@@ -114,6 +145,7 @@ namespace parallel {
 			unsigned long max_hardware_threads = 0;
 			unsigned long num_threads;
 			unsigned long block_size;
+			unsigned int curr_recurse_depth=0; //current recursion depth
 			void SetLaunchPolicies(InputIt beg, InputIt end) {
 				tTypes = ThreadTypes::standard;
 				length = std::distance(beg, end);
@@ -139,6 +171,30 @@ namespace parallel {
 				;
 				num_threads = std::min(hardware_threads != 0 ? hardware_threads : 2, max_threads);
 				block_size = length / num_threads;
+			}
+
+			unsigned long getBlockSize() const {
+				return block_size;
+			}
+
+			void setBlockSize(unsigned long blockSize) {
+				block_size = blockSize;
+			}
+
+			unsigned int getCurrRecurseDepth() const {
+				return curr_recurse_depth;
+			}
+
+			void setCurrRecurseDepth(unsigned int currRecurseDepth = 0) {
+				curr_recurse_depth = currRecurseDepth;
+			}
+
+			ThreadTypes getTypes() const {
+				return tTypes;
+			}
+
+			void setTypes(ThreadTypes types) {
+				tTypes = types;
 			}
 	};
 
@@ -459,7 +515,7 @@ namespace parallel {
 		InputIt block_start = beg;
 		InputIt block_end = beg;
 		if(Tp.tTypes == ThreadTypes::standard) {
-			for(unsigned int i; i < (Tp.num_threads - 1); i++) {
+			for(unsigned int i = 0; i < (Tp.num_threads - 1); i++) {
 
 				std::advance(block_end, Tp.block_size);
 				threads[i] = std::thread(fill_block<InputIt, T>(), block_start, block_end,
@@ -474,7 +530,7 @@ namespace parallel {
 		}
 
 		if(Tp.tTypes == ThreadTypes::async) {
-			for(unsigned int i; i < (Tp.num_threads - 1); i++) {
+			for(unsigned int i = 0; i < (Tp.num_threads - 1); i++) {
 
 				std::advance(block_end, Tp.block_size);
 				futures[i] = std::async(std::launch::async, fill_block<InputIt, T>(), block_start,
@@ -3659,11 +3715,14 @@ namespace parallel {
 			 */
 			bool operator()(InputIt1 beg1, InputIt1 end1, InputIt2 beg2, InputIt2 end2, int &retval,
 							std::input_iterator_tag) {
+				if(std::distance(beg2, end2) != std::distance(beg1, end1))
+					return false;
 				auto ans = std::equal(beg1, end1, beg2);
 				if(ans)
 					retval = 1;
 				else
 					retval = 0;
+
 				return ans;
 			}
 	};
@@ -4603,13 +4662,17 @@ namespace parallel {
 					first++;
 				}
 			}
+	};
+
+	template<typename InputIt, typename OutputIt>
+	struct copy_if_block2 {
 
 			/**
 			 * @summary This version copies in all the values of the iterators that statisfy the required predicate into the Output Iterator.
 			 *
 			 * @param beg2 beginning of the Output container
 			 * @param ret vector containing Iterators to elements that satisfy the predicate.
-			 * @param make sure we have at leas an input iterator.
+			 * @param make sure we have at least an input iterator.
 			 * @return
 			 */
 			void operator()(OutputIt beg2, std::vector<InputIt> &ret, std::input_iterator_tag) {
@@ -4617,7 +4680,7 @@ namespace parallel {
 				typename std::vector<InputIt>::iterator end = ret.end();
 
 				while(first != end) {
-					*beg2++ = *(*first);
+					*beg2++ = *(*first); //the container contains iterators
 					first++;
 				}
 			}
@@ -4948,14 +5011,13 @@ namespace parallel {
 			for(unsigned int i = 0; i < (Tp.num_threads - 1); i++) {
 
 				std::advance(block_end2, output[i].size());
-				threads2[i] = std::thread(copy_if_block<InputIt, OutputIt, UnaryPred>(),
-										  block_start2, std::ref(output[i]),
+				threads2[i] = std::thread(copy_if_block2<InputIt, OutputIt>(), block_start2,
+										  std::ref(output[i]),
 										  typename std::iterator_traits<InputIt>::iterator_category());
 
 				block_start2 = block_end2;
 			}
-			copy_if_block<InputIt, OutputIt, UnaryPred>()(block_start2,
-					std::ref(output[Tp.num_threads - 1]),
+			copy_if_block2<InputIt, OutputIt>()(block_start2, std::ref(output[Tp.num_threads - 1]),
 					typename std::iterator_traits<InputIt>::iterator_category());
 			std::for_each(threads2.begin(), threads2.end(), std::mem_fn(&std::thread::join));
 		}
@@ -4985,21 +5047,20 @@ namespace parallel {
 			for(unsigned int i = 0; i < (Tp.num_threads - 1); i++) {
 
 				std::advance(block_end2, output[i].size());
-				futures2[i] = std::async(std::launch::async,
-										 copy_if_block<InputIt, OutputIt, UnaryPred>(), block_start2,
-										 std::ref(output[i]),
+				futures2[i] = std::async(std::launch::async, copy_if_block2<InputIt, OutputIt>(),
+										 block_start2, std::ref(output[i]),
 										 typename std::iterator_traits<InputIt>::iterator_category());
 
 				block_start2 = block_end2;
 			}
-			copy_if_block<InputIt, OutputIt, UnaryPred>()(block_start2,
-					std::ref(output[Tp.num_threads - 1]),
+			copy_if_block2<InputIt, OutputIt>()(block_start2, std::ref(output[Tp.num_threads - 1]),
 					typename std::iterator_traits<InputIt>::iterator_category());
 			std::for_each(futures2.begin(), futures2.end(), std::mem_fn(&std::future<void>::wait));
 		}
 
-		auto ans = std::accumulate(output.begin(), output.end(), 0,
-								   [&](int & val, std::vector<InputIt> & vec)->int {return val+ vec.size();});
+		auto ans =
+				std::accumulate(output.begin(), output.end(), (std::size_t) 0,
+								[&](std::size_t & val, std::vector<InputIt> & vec)->std::size_t {return val+ vec.size();});
 
 		OutputIt last = beg2;
 		std::advance(last, ans);
@@ -5699,7 +5760,7 @@ namespace parallel {
 	template<typename BidirIt, typename Tpolicy = LaunchPolicies<BidirIt> >
 	void reverse(BidirIt beg, BidirIt end) {
 		Tpolicy Tp;
-		typename std::iterator_traits<BidirIt>::difference_type len = (end - beg) / 2; //the last added iterator is not included
+		typename std::iterator_traits<BidirIt>::difference_type len = ((end - beg) >>1); //the last added iterator is not included
 		Tp.SetLaunchPolicies(len);
 		if(!Tp.length)
 			return;
@@ -5753,7 +5814,7 @@ namespace parallel {
 	void reverse2(BidirIt beg, BidirIt end, unsigned int N = std::thread::hardware_concurrency()) {
 		Tpolicy Tp;
 		Tp.max_hardware_threads = N;
-		typename std::iterator_traits<BidirIt>::difference_type len = (end - beg) / 2; //the last added iterator is not included
+		typename std::iterator_traits<BidirIt>::difference_type len = ((end - beg) >>1); //the last added iterator is not included
 		Tp.SetLaunchPolicies(len);
 		if(!Tp.length)
 			return;
@@ -5903,27 +5964,22 @@ namespace parallel {
 		Tpolicy Tp;
 
 		auto len2 = std::distance(mid, end);
-		auto beg2 = beg;
 
 		Tp.max_hardware_threads = N;
 		Tp.SetLaunchPolicies(beg, end);
 		if(!Tp.length)
 			return;
-		if(Tp.num_threads < 2 or N < 2 or N == 0 or Tp.length < blcksz) {
-			//perform swap
-			std::reverse(beg, end);
-			mid = std::next(beg2, len2);
+		if(Tp.num_threads < 2 or N < 2 or N == 0 or len2 < blcksz) {
 
-			std::reverse(beg, mid);
-			std::reverse(mid, end);
-
+			std::rotate(beg,mid,end);
+			return;
 		}
 
-		//LaunchPolicies<BiDirIt,blcksz,v> policy;
-		parallel::reverse2<BiDirIt, Tpolicy>(beg, end, N);
-		mid = std::next(beg2, len2);
+		//implement it using reverse rotate
 		parallel::reverse2<BiDirIt, Tpolicy>(beg, mid, N);
 		parallel::reverse2<BiDirIt, Tpolicy>(mid, end, N);
+		parallel::reverse2<BiDirIt, Tpolicy>(beg, end, N);
+
 		return;
 
 	}
@@ -5986,10 +6042,7 @@ namespace parallel {
 			return;
 
 		//perform swap
-		std::reverse(beg, end);
-		mid = std::next(beg2, len2);
-		std::reverse(beg, mid);
-		std::reverse(mid, end);
+		std::rotate(beg,mid,end);
 
 	}
 
@@ -6068,27 +6121,27 @@ namespace parallel {
 	 * @return
 	 */
 	template<typename InputIt>
-	std::pair<size_t, size_t> find_coranks(size_t i, InputIt begA, InputIt endA, InputIt begB,
-			InputIt endB) {
-		auto m = static_cast<size_t>(std::distance(begA, endA));
-		auto n = static_cast<size_t>(std::distance(begB, endB));
-		auto j = static_cast<size_t>(std::min(i, m));
+	std::pair<std::size_t, std::size_t> find_coranks(std::size_t i, InputIt begA, InputIt endA,
+			InputIt begB, InputIt endB) {
+		auto m = static_cast<std::size_t>(std::distance(begA, endA));
+		auto n = static_cast<std::size_t>(std::distance(begB, endB));
+		auto j = static_cast<std::size_t>(std::min(i, m));
 		auto k = i - j;
 		auto jlow = std::max(static_cast<size_t>(0), i - n);
 		auto klow = k;
 		auto delta = jlow;
 		auto active = true;
-
+		auto two = static_cast<std::size_t>(2);
 		while(active) {
 
 			if(j > 0 and k < n and *(begA + j - 1) > *(begB + k)) {
-				delta = std::ceil((j - jlow) / 2);
+				delta = cSizet(std::ceil((j - jlow) / two));
 				klow = k;
 				j = j - delta;
 				k = k + delta;
 			}
 			else if(k > 0 and j < m and *(begB + k - 1) >= *(begA + j)) {
-				delta = std::ceil((k - klow) / 2);
+				delta = cSizet(std::ceil((k - klow) / two));
 				jlow = j;
 				j = j + delta;
 				k = k - delta;
@@ -6111,27 +6164,28 @@ namespace parallel {
 	 * @return
 	 */
 	template<typename InputIt, typename BinaryComp>
-	std::pair<size_t, size_t> find_coranks(size_t i, InputIt begA, InputIt endA, InputIt begB,
-			InputIt endB, BinaryComp op) {
-		auto m = static_cast<size_t>(std::distance(begA, endA));
-		auto n = static_cast<size_t>(std::distance(begB, endB));
-		auto j = static_cast<size_t>(std::min(i, m));
+	std::pair<std::size_t, std::size_t> find_coranks(std::size_t i, InputIt begA, InputIt endA,
+			InputIt begB, InputIt endB, BinaryComp op) {
+		auto m = static_cast<std::size_t>(std::distance(begA, endA));
+		auto n = static_cast<std::size_t>(std::distance(begB, endB));
+		auto j = static_cast<std::size_t>(std::min(i, m));
 		auto k = i - j;
 		auto jlow = std::max(static_cast<size_t>(0), i - n);
 		auto klow = k;
 		auto delta = jlow;
 		auto active = true;
+		auto two = static_cast<std::size_t>(2);
 
 		while(active) {
 
 			if(j > 0 and k < n and op(*(begB + k), *(begA + j - 1))) {
-				delta = std::ceil((j - jlow) / 2);
+				delta = cSizet(std::ceil((j - jlow) / two));
 				klow = k;
 				j = j - delta;
 				k = k + delta;
 			}
 			else if(k > 0 and j < m and !(op(*(begB + k - 1), *(begA + j)))) {
-				delta = std::ceil((k - klow) / 2);
+				delta = cSizet(std::ceil((k - klow) / two));
 				jlow = j;
 				j = j + delta;
 				k = k - delta;
@@ -6164,33 +6218,49 @@ namespace parallel {
 		Tp.SetLaunchPolicies(beg, end);
 		if(!Tp.length)
 			return;
-		if((N < 2) or (Tp.num_threads < 2) or (Tp.length < 2048)) {
-			std::inplace_merge(beg, mid, end);
-			return;
-		}
-		auto half = Tp.length / 2;
+		auto half = Tp.length>>1;
 		auto rnks = find_coranks(half, beg, mid, mid, end);
 		auto mid1 = std::next(beg2, half);
 		beg2 = beg;
 
 		auto start1 = std::next(beg2, rnks.first);
 		auto end1 = std::next(mid2, rnks.second);
+		if(len1 < (1024l << 1)) {
+			std::inplace_merge(beg, mid, end);
+			return;
+		}
+		else if(N < 2 or Tp.num_threads < 2) {
+			inplace_par_swap<BiDirIt, (1024ul<<1), Tpolicy>(start1, mid, end1, 0);
+			beg2 = beg;
+			end2 = end;
+			mid2 = mid;
+			mid2 = std::next(beg2, rnks.first);
+			beg2 = beg;
+			mid1 = std::next(beg2, half);
+			auto mid3 = std::next(beg2, half + (len1 - rnks.first));
+			parallel::inplace_merge_helper<BiDirIt, Tpolicy>(beg, mid2, mid1, 0,
+					typename std::iterator_traits<BiDirIt>::iterator_category());
+			parallel::inplace_merge_helper<BiDirIt, Tpolicy>(mid1, mid3, end, 0,
+					typename std::iterator_traits<BiDirIt>::iterator_category());
+					return;
 
-		inplace_par_swap<BiDirIt, 2048, Tpolicy>(start1, mid, end1, N);
-		beg2 = beg;
-		end2 = end;
-		mid2 = mid;
-		mid2 = std::next(beg2, rnks.first);
-		beg2 = beg;
-		mid1 = std::next(beg2, half);
-		auto mid3 = std::next(beg2, half + (len1 - rnks.first));
-		auto fn = std::async(std::launch::async, parallel::inplace_merge_helper<BiDirIt, Tpolicy>,
-							 beg, mid2, mid1, N - 2,
-							 typename std::iterator_traits<BiDirIt>::iterator_category());
-		parallel::inplace_merge_helper<BiDirIt, Tpolicy>(mid1, mid3, end, N - 2,
-				typename std::iterator_traits<BiDirIt>::iterator_category());
-		fn.wait();
-
+		}
+		else {
+			inplace_par_swap<BiDirIt, (1024u<<1), Tpolicy>(start1, mid, end1, N);
+			beg2 = beg;
+			end2 = end;
+			mid2 = mid;
+			mid2 = std::next(beg2, rnks.first);
+			beg2 = beg;
+			mid1 = std::next(beg2, half);
+			auto mid3 = std::next(beg2, half + (len1 - rnks.first));
+			auto fn = std::async(std::launch::async,
+								 parallel::inplace_merge_helper<BiDirIt, Tpolicy>, beg, mid2, mid1, N - 2,
+								 typename std::iterator_traits<BiDirIt>::iterator_category());
+			parallel::inplace_merge_helper<BiDirIt, Tpolicy>(mid1, mid3, end, N - 2,
+					typename std::iterator_traits<BiDirIt>::iterator_category());
+			fn.wait();
+		}
 		return;
 	}
 	/**
@@ -6216,7 +6286,7 @@ namespace parallel {
 		Tp.SetLaunchPolicies(beg, end);
 		if(!Tp.length)
 			return;
-		if((N < 2) or (Tp.num_threads < 2) or (Tp.length < 2048)) {
+		if((N < 2) or (Tp.num_threads < 2) or (Tp.length < 1024)) {
 			std::inplace_merge(beg, mid, end, op);
 			return;
 		}
@@ -6228,7 +6298,7 @@ namespace parallel {
 		auto start1 = std::next(beg2, rnks.first);
 		auto end1 = std::next(mid2, rnks.second);
 
-		inplace_par_swap<BiDirIt, 2048, Tpolicy>(start1, mid, end1, N);
+		inplace_par_swap<BiDirIt, 1024, Tpolicy>(start1, mid, end1, N);
 		beg2 = beg;
 		end2 = end;
 		mid2 = mid;
@@ -6285,21 +6355,33 @@ namespace parallel {
 			void stable_sort_helper(RanIt beg, RanIt en, unsigned int N, std::random_access_iterator_tag) {
 
 		auto len = std::distance(beg, en);
-		if(len <= 8192 or N < 2) {
+		auto mid = std::next(beg, (len >>1));
+		if(len <= (1024l<<0)) {
 			std::stable_sort(beg, en);
 			return;
 		}
 
-		auto mid = std::next(beg, len / 2);
+		else if(N < 2) {
+			stable_sort_helper<RanIt, Tpolicy>(beg, mid, 0,
+					typename std::iterator_traits<RanIt>::iterator_category());
+			stable_sort_helper<RanIt, Tpolicy>(mid, en, 0,
+					typename std::iterator_traits<RanIt>::iterator_category());
+			std::inplace_merge(beg, mid, en);
+			return;
+		}
+		else {
 
-		auto fn = std::async(std::launch::async, stable_sort_helper<RanIt, Tpolicy>, beg, mid,
-							 N - 2, typename std::iterator_traits<RanIt>::iterator_category());
-		stable_sort_helper<RanIt, Tpolicy>(mid, en, N - 2,
-				typename std::iterator_traits<RanIt>::iterator_category());
+			auto fn = std::async(std::launch::async, stable_sort_helper<RanIt, Tpolicy>, beg, mid,
+								 N - 2, typename std::iterator_traits<RanIt>::iterator_category());
+			stable_sort_helper<RanIt, Tpolicy>(mid, en, N - 2,
+					typename std::iterator_traits<RanIt>::iterator_category());
 
-		fn.wait();
-		//std::cout<<N << " finished"<<std::endl;
-		parallel::inplace_merge<RanIt, Tpolicy>(beg, mid, en, N);
+			fn.wait();
+			parallel::inplace_merge<RanIt, Tpolicy>(beg, mid, en, N);
+			return;
+		}
+
+
 	}
 	/**
 	 * stable sort
@@ -6762,8 +6844,8 @@ namespace parallel {
 		// our implementation has used partition already so the pivot is already
 		parallel::nth_element<RanIt, Tpolicy>(beg, mid, end, N);
 		//recurse on the 2 subproblems
-		auto fn = std::async(std::launch::async, parallel::sort_helper<RanIt, Tpolicy>, beg, mid, N - 2,
-							 typename std::iterator_traits<RanIt>::iterator_category());
+		auto fn = std::async(std::launch::async, parallel::sort_helper<RanIt, Tpolicy>, beg, mid,
+							 N - 2, typename std::iterator_traits<RanIt>::iterator_category());
 		sort_helper<RanIt, Tpolicy>(mid, end, N - 2,
 				typename std::iterator_traits<RanIt>::iterator_category());
 
@@ -6831,6 +6913,101 @@ namespace parallel {
 			void sort(RanIt beg, RanIt end, BinaryOp op,
 					  unsigned int N = std::thread::hardware_concurrency) {
 		parallel::sort_helper<RanIt, BinaryOp, Tpolicy>(beg, end, op, std::max(1u, N),
+				std::iterator_traits<RanIt>::iterator_category());
+	}
+	/**
+	 * partial sort algorithm
+	 * @param beg Iterator to beginning of range
+	 * @param mid Iterator upto [beg,mid) that we want to sort
+	 * @param end Iterator to the end of the range
+	 * @param N parameter controlling the number of threads
+	 * @param make sure we have a random access iterator.
+	 */
+	template<typename RanIt, typename Tpolicy = LaunchPolicies<RanIt>>
+			void partial_sort_helper(RanIt beg, RanIt mid, RanIt end, unsigned int N,
+									 std::random_access_iterator_tag) {
+		Tpolicy Tp;
+		auto beg2 = beg;
+		auto end2 = end;
+		auto mid_pos = std::distance(beg, mid);
+		Tp.max_hardware_threads = N;
+		Tp.SetLaunchPolicies(beg, end, N);
+		if(!Tp.length)
+			return;
+
+		if((N < 2) or (Tp.num_threads < 2) or (Tp.length < 8192)) {
+			std::partial_sort(beg, mid, end);
+			return;
+
+		}
+		// our implementation has used partition already so the pivot is already
+		parallel::nth_element<RanIt, Tpolicy>(beg, mid, end, N);
+		//since we are already properly partitioned now call sort on the partitioned part
+		parallel::sort<RanIt, Tpolicy>(beg, mid, N);
+
+	}
+
+	/**
+	 * partial sort algorithm
+	 * @param beg Iterator to beginning of range
+	 * @param mid Iterator upto [beg,mid) that we want to sort
+	 * @param end Iterator to the end of the range
+	 * @param op Binary operator implementing the less than paradigm
+	 * @param N parameter controlling the number of threads
+	 * @param make sure we have a random access iterator.
+	 */
+	template<typename RanIt, typename BinaryOp, typename Tpolicy = LaunchPolicies<RanIt>>
+			void partial_sort_helper(RanIt beg, RanIt mid, RanIt end, BinaryOp op, unsigned int N,
+									 std::random_access_iterator_tag) {
+		Tpolicy Tp;
+		auto beg2 = beg;
+		auto end2 = end;
+		auto mid_pos = std::distance(beg, mid);
+		Tp.max_hardware_threads = N;
+		Tp.SetLaunchPolicies(beg, end, N);
+		if(!Tp.length)
+			return;
+
+		if((N < 2) or (Tp.num_threads < 2) or (Tp.length < 8192)) {
+			std::partial_sort(beg, mid, end, op);
+			return;
+
+		}
+		// our implementation has used partition already so the pivot is already
+		parallel::nth_element<RanIt, BinaryOp, Tpolicy>(beg, mid, end, op, N);
+		//since we are already properly partitioned now call sort on the partitioned part
+		parallel::sort<RanIt, BinaryOp, Tpolicy>(beg, mid, op, N);
+
+	}
+
+	/**
+	 * partial sort algorithm
+	 * @param beg Iterator to beginning of range
+	 * @param mid Iterator upto [beg,mid) that we want to sort
+	 * @param end Iterator to the end of the range
+	 * @param N parameter controlling the number of threads
+	 * @param make sure we have a random access iterator.
+	 */
+	template<typename RanIt, typename Tpolicy = LaunchPolicies<RanIt>>
+			void partial_sort(RanIt beg, RanIt mid, RanIt end, unsigned int N =
+					std::thread::hardware_concurrency()) {
+		parallel::partial_sort_helper<RanIt, Tpolicy>(beg, mid, end, std::max(1u, N),
+				std::iterator_traits<RanIt>::iterator_category());
+	}
+
+	/**
+	 * partial sort algorithm
+	 * @param beg Iterator to beginning of range
+	 * @param mid Iterator upto [beg,mid) that we want to sort
+	 * @param end Iterator to the end of the range
+	 * @param op Binary operator implementing the less than paradigm for op(x,y) equivalent to x<y
+	 * @param N parameter controlling the number of threads
+	 * @param make sure we have a random access iterator.
+	 */
+	template<typename RanIt, typename BinaryOp, typename Tpolicy = LaunchPolicies<RanIt>>
+			void partial_sort(RanIt beg, RanIt mid, RanIt end, BinaryOp op, unsigned int N =
+					std::thread::hardware_concurrency()) {
+		parallel::partial_sort_helper<RanIt, BinaryOp, Tpolicy>(beg, mid, end, op, std::max(1u, N),
 				std::iterator_traits<RanIt>::iterator_category());
 	}
 

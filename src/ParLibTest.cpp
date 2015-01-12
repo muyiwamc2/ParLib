@@ -152,15 +152,15 @@ BOOST_AUTO_TEST_SUITE(Accumulate)
 		using namespace std;
 		long int val;
 		vector<long int> one(100000);
-		iota(one.begin(), one.end(), 1);
+		iota(one.begin(), one.end(), 1l);
 		//function<void(int&)> op = [&](int &k)->void{ one[k-1]= k*30; };
-		long int val1 = 0;
+		long int val1 = 0l;
 		for(long int v : one)
-			if((v % 10) == 0)
+			if((v % 10l) == 0l)
 				val1 += v;
 
-		val = parallel::accumulate_if(one.begin(), one.end(), 0,
-				[](long int k)->bool {return (k%10)==0;});
+		val = parallel::accumulate_if(one.begin(), one.end(), 0l,
+				[](long int k)->bool {return (k%10l)==0l;});
 
 		BOOST_CHECK(val == val1);
 	}
@@ -169,16 +169,16 @@ BOOST_AUTO_TEST_SUITE(Accumulate)
 		using namespace std;
 		long int val;
 		vector<long int> one(100000);
-		iota(one.begin(), one.end(), 1);
+		iota(one.begin(), one.end(), 1l);
 		function<long int(long int, long int)> op =
 				[&](long int i, long int j)->long int {return i+j;};
 		long int val1 = 0;
 		for(long int v : one)
-			if((v % 10) == 0)
+			if((v % 10l) == 0l)
 				val1 += v;
 
-		val = parallel::accumulate_if(one.begin(), one.end(), 0,
-				[](long int k)->bool {return (k%10)==0;}, op);
+		val = parallel::accumulate_if(one.begin(), one.end(), 0l,
+				[](long int k)->bool {return (k%10l)==0l;}, op);
 
 		BOOST_CHECK(val == val1);
 	}
@@ -224,7 +224,7 @@ BOOST_AUTO_TEST_SUITE(Inner_Product)
 		vector<int> two(100000);
 		vector<int> three(100000);
 		iota(one.begin(), one.end(), 1);
-		int j;
+		int j=0;
 		for(auto &i : one) {
 			++j;
 			i += j;
@@ -241,7 +241,7 @@ BOOST_AUTO_TEST_SUITE(Inner_Product)
 		vector<int> two(100000);
 		vector<int> three(100000);
 		iota(one.begin(), one.end(), 1);
-		int j;
+		int j=0;
 		//function<int(int,int)> op = [&](int &a, int &b)->int{ return b-a;} ;
 		for(auto &i : one) {
 			++j;
@@ -653,15 +653,15 @@ BOOST_AUTO_TEST_SUITE(Copy)
 	}
 	BOOST_AUTO_TEST_CASE(copy_if_test1) {
 		using namespace std;
-		vector<int> one(100);
-		iota(one.begin(), one.end(), 100);
+		vector<int> one(200'000);
+		iota(one.begin(), one.end(), 200'000);
 
-		std::vector<int> three(501);
-		std::vector<int> four(501);
+		std::vector<int> three(100'001);
+		std::vector<int> four(100'001);
 		std::function<bool(int)> filt = [](int k)->bool {return k %2;};
 		auto val1 = std::copy_if(one.begin(), one.end(), three.begin(), filt);
 		//std::cout<<*val1<<std::endl;
-		iota(one.begin(), one.end(), 100);
+		iota(one.begin(), one.end(), 200'000);
 		auto val2 = parallel::copy_if(one.begin(), one.end(), four.begin(), filt);
 		auto val = std::equal(three.begin(), three.end(), four.begin(),
 				[](int a, int b)->bool {return a==b;});
@@ -835,7 +835,7 @@ BOOST_AUTO_TEST_SUITE(miscellaneous_tests)
 		 catch(std::exception &e){
 		 std::cout<<e.what()<<std::endl;
 		 }*/
-		for(int i = 0; i < 1; ++i) {
+		for(int i = 0; i < 2; ++i) {
 			std::cout << "Generating...\n";
 			std::generate_n(back.begin(), back.size(), [&]() {return dist(rng);});
 
