@@ -6206,7 +6206,7 @@ namespace parallel {
 	 */
 	template<typename BiDirIt, typename Tpolicy = LaunchPolicies<BiDirIt>>
 			void inplace_merge_helper(BiDirIt beg, BiDirIt mid, BiDirIt end, unsigned int N,
-									  std::bidirectional_iterator_tag) {
+									  std::bidirectional_iterator_tag,unsigned int depth=0, unsigned long maxthread=std::thread::hardware_concurrency()) {
 
 		Tpolicy Tp;
 		auto beg2 = beg;
@@ -6225,12 +6225,13 @@ namespace parallel {
 
 		auto start1 = std::next(beg2, rnks.first);
 		auto end1 = std::next(mid2, rnks.second);
-		if(len1 < (1024l << 1)) {
+		if(len1 < (1024l << 0)) {
 			std::inplace_merge(beg, mid, end);
 			return;
 		}
-		else if(N < 2 or Tp.num_threads < 2) {
-			inplace_par_swap<BiDirIt, (1024ul<<1), Tpolicy>(start1, mid, end1, 0);
+		else if((maxthread< (1ul<<depth)) or N < 2 or Tp.num_threads < 2) {
+			depth++;
+			inplace_par_swap<BiDirIt, (1024ul<<0), Tpolicy>(start1, mid, end1, 0);
 			beg2 = beg;
 			end2 = end;
 			mid2 = mid;
@@ -6239,14 +6240,15 @@ namespace parallel {
 			mid1 = std::next(beg2, half);
 			auto mid3 = std::next(beg2, half + (len1 - rnks.first));
 			parallel::inplace_merge_helper<BiDirIt, Tpolicy>(beg, mid2, mid1, 0,
-					typename std::iterator_traits<BiDirIt>::iterator_category());
+					typename std::iterator_traits<BiDirIt>::iterator_category(),depth,maxthread);
 			parallel::inplace_merge_helper<BiDirIt, Tpolicy>(mid1, mid3, end, 0,
-					typename std::iterator_traits<BiDirIt>::iterator_category());
+					typename std::iterator_traits<BiDirIt>::iterator_category(),depth,maxthread);
 					return;
 
 		}
 		else {
-			inplace_par_swap<BiDirIt, (1024u<<1), Tpolicy>(start1, mid, end1, N);
+			depth++;
+			inplace_par_swap<BiDirIt, (1024u<<0), Tpolicy>(start1, mid, end1, 0);
 			beg2 = beg;
 			end2 = end;
 			mid2 = mid;
@@ -6256,9 +6258,9 @@ namespace parallel {
 			auto mid3 = std::next(beg2, half + (len1 - rnks.first));
 			auto fn = std::async(std::launch::async,
 								 parallel::inplace_merge_helper<BiDirIt, Tpolicy>, beg, mid2, mid1, N - 2,
-								 typename std::iterator_traits<BiDirIt>::iterator_category());
+								 typename std::iterator_traits<BiDirIt>::iterator_category(),depth,maxthread);
 			parallel::inplace_merge_helper<BiDirIt, Tpolicy>(mid1, mid3, end, N - 2,
-					typename std::iterator_traits<BiDirIt>::iterator_category());
+					typename std::iterator_traits<BiDirIt>::iterator_category(),depth,maxthread);
 			fn.wait();
 		}
 		return;
@@ -6352,7 +6354,7 @@ namespace parallel {
 	 * @param
 	 */
 	template<typename RanIt, typename Tpolicy = LaunchPolicies<RanIt>>
-			void stable_sort_helper(RanIt beg, RanIt en, unsigned int N, std::random_access_iterator_tag) {
+			void stable_sort_helper(RanIt beg, RanIt en, unsigned int N, std::random_access_iterator_tag ,unsigned int depth=0 , unsigned long  maxthread=std::thread::hardware_concurrency()) {
 
 		auto len = std::distance(beg, en);
 		auto mid = std::next(beg, (len >>1));
@@ -6361,23 +6363,25 @@ namespace parallel {
 			return;
 		}
 
-		else if(N < 2) {
+		else if(N < 2 or maxthread<(1ul<<depth)) {
+			depth++;
 			stable_sort_helper<RanIt, Tpolicy>(beg, mid, 0,
-					typename std::iterator_traits<RanIt>::iterator_category());
+					typename std::iterator_traits<RanIt>::iterator_category(),depth,maxthread);
 			stable_sort_helper<RanIt, Tpolicy>(mid, en, 0,
-					typename std::iterator_traits<RanIt>::iterator_category());
+					typename std::iterator_traits<RanIt>::iterator_category(),depth,maxthread);
 			std::inplace_merge(beg, mid, en);
 			return;
 		}
 		else {
-
+			depth++;
 			auto fn = std::async(std::launch::async, stable_sort_helper<RanIt, Tpolicy>, beg, mid,
-								 N - 2, typename std::iterator_traits<RanIt>::iterator_category());
+								 N - 2, typename std::iterator_traits<RanIt>::iterator_category(),depth,maxthread);
 			stable_sort_helper<RanIt, Tpolicy>(mid, en, N - 2,
-					typename std::iterator_traits<RanIt>::iterator_category());
+					typename std::iterator_traits<RanIt>::iterator_category(),depth,maxthread);
 
 			fn.wait();
-			parallel::inplace_merge<RanIt, Tpolicy>(beg, mid, en, N);
+			//parallel::inplace_merge<RanIt, Tpolicy>(beg, mid, en, N>>1);
+			std::inplace_merge(beg,mid ,en);
 			return;
 		}
 
@@ -6422,7 +6426,7 @@ namespace parallel {
 			void stable_sort(RandomIt beg, RandomIt en, unsigned int N =
 					std::thread::hardware_concurrency()) {
 		stable_sort_helper<RandomIt, Tpolicy>(beg, en, std::max(1u, N),
-				typename std::iterator_traits<RandomIt>::iterator_category());
+				typename std::iterator_traits<RandomIt>::iterator_category(),0,std::max(1ul,(unsigned long)N));
 	}
 	/**
 	 * Actual stable sort call
