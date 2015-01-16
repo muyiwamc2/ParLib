@@ -70,7 +70,7 @@ namespace parallel {
 			unsigned long max_threads;
 			unsigned long num_threads;
 			unsigned long block_size;
-			unsigned int curr_recurse_depth=0; //recursion depth for algorithms
+			unsigned int curr_recurse_depth = 0; //recursion depth for algorithms
 			/**
 			 * @summary sets the launch policies for the threads..
 			 * @param beg Input iterator to the beginning of the input range
@@ -145,7 +145,7 @@ namespace parallel {
 			unsigned long max_hardware_threads = 0;
 			unsigned long num_threads;
 			unsigned long block_size;
-			unsigned int curr_recurse_depth=0; //current recursion depth
+			unsigned int curr_recurse_depth = 0; //current recursion depth
 			void SetLaunchPolicies(InputIt beg, InputIt end) {
 				tTypes = ThreadTypes::standard;
 				length = std::distance(beg, end);
@@ -5760,7 +5760,7 @@ namespace parallel {
 	template<typename BidirIt, typename Tpolicy = LaunchPolicies<BidirIt> >
 	void reverse(BidirIt beg, BidirIt end) {
 		Tpolicy Tp;
-		typename std::iterator_traits<BidirIt>::difference_type len = ((end - beg) >>1); //the last added iterator is not included
+		typename std::iterator_traits<BidirIt>::difference_type len = ((end - beg) >> 1); //the last added iterator is not included
 		Tp.SetLaunchPolicies(len);
 		if(!Tp.length)
 			return;
@@ -5814,7 +5814,7 @@ namespace parallel {
 	void reverse2(BidirIt beg, BidirIt end, unsigned int N = std::thread::hardware_concurrency()) {
 		Tpolicy Tp;
 		Tp.max_hardware_threads = N;
-		typename std::iterator_traits<BidirIt>::difference_type len = ((end - beg) >>1); //the last added iterator is not included
+		typename std::iterator_traits<BidirIt>::difference_type len = ((end - beg) >> 1); //the last added iterator is not included
 		Tp.SetLaunchPolicies(len);
 		if(!Tp.length)
 			return;
@@ -5969,9 +5969,9 @@ namespace parallel {
 		Tp.SetLaunchPolicies(beg, end);
 		if(!Tp.length)
 			return;
-		if(Tp.num_threads < 2 or N < 2 or N == 0 or len2 < blcksz) {
+		if(Tp.num_threads < 2 or N < 2 or len2 < blcksz) {
 
-			std::rotate(beg,mid,end);
+			std::rotate(beg, mid, end);
 			return;
 		}
 
@@ -6042,7 +6042,7 @@ namespace parallel {
 			return;
 
 		//perform swap
-		std::rotate(beg,mid,end);
+		std::rotate(beg, mid, end);
 
 	}
 
@@ -6112,6 +6112,8 @@ namespace parallel {
 	}
 	//standard co-ranks
 	/**
+	 * @summary function performs a binary search on both arrays
+	 * algorithm found at http://arxiv.org/abs/1303.4312 Perfectly load-balanced, optimal, stable, parallel merge
 	 * Function used to find the elements of ranks up to k in two sorted ranges
 	 * @param i The range upto that we need (equivalent to finding n-th element of two arrays) kind of
 	 * @param begA Iterator to the beginning of the first range
@@ -6148,12 +6150,15 @@ namespace parallel {
 
 			}
 			else
+				//no invariants violated we have found the index j and k
 				active = false;
 		}
 		return std::make_pair(j, k);
 	}
 
 	/**
+	 * Function used to find the elements of ranks up to k in two sorted ranges
+	 * algorithm found at http://arxiv.org/abs/1303.4312 Perfectly load-balanced, optimal, stable, parallel merge
 	 * Function used to find the elements of ranks up to k in two sorted ranges
 	 * @param i The range upto that we need (equivalent to finding n-th element of two arrays) kind of
 	 * @param begA Iterator to the beginning of the first range
@@ -6196,6 +6201,33 @@ namespace parallel {
 		}
 		return std::make_pair(j, k);
 	}
+
+	/**
+	 * Gets the Two split points and the middle for the container in a merge of two ranges
+	 * @param beg
+	 * @param mid
+	 * @param end
+	 * @param split1
+	 * @param split2
+	 * @param middle
+	 */
+	template<typename It>
+	void getSplitAndMiddleForSwap(It beg, It mid, It end, It &split1, It &split2, It &middle) {
+		auto len1 = std::distance(beg, mid);
+		auto len2 = std::distance(mid, end);
+		if(len1 > len2) {
+			split1 = std::next(beg, len1 >> 1);
+			split2 = std::upper_bound(mid, end, *split1);
+		}
+		if(len2>=len1) {
+			split2 = std::next(mid, len2 >> 1);
+			split1 = std::upper_bound(beg, mid, *split2);
+		}
+		//		auto rnks = find_coranks(cSizet((len1 + len2) >> 1), beg, mid, mid, end);
+		//		split1 = std::next(beg, rnks.first);
+		//		split2 = std::next(mid, rnks.second);
+		middle = std::next(split1, std::distance(mid, split2));
+	}
 	/**
 	 * Actual Implementation of the parallel inplace merge
 	 * @param beg Iterator to the beginning of the first  range
@@ -6206,63 +6238,44 @@ namespace parallel {
 	 */
 	template<typename BiDirIt, typename Tpolicy = LaunchPolicies<BiDirIt>>
 			void inplace_merge_helper(BiDirIt beg, BiDirIt mid, BiDirIt end, unsigned int N,
-									  std::bidirectional_iterator_tag,unsigned int depth=0, unsigned long maxthread=std::thread::hardware_concurrency()) {
+									  std::bidirectional_iterator_tag, unsigned int depth = 0,
+									  unsigned long maxthread = std::thread::hardware_concurrency()) {
 
 		Tpolicy Tp;
-		auto beg2 = beg;
-		auto end2 = end;
-		auto mid2 = mid;
-		auto len1 = std::distance(beg, mid);
 
 		Tp.max_hardware_threads = N;
 		Tp.SetLaunchPolicies(beg, end);
 		if(!Tp.length)
 			return;
-		auto half = Tp.length>>1;
-		auto rnks = find_coranks(half, beg, mid, mid, end);
-		auto mid1 = std::next(beg2, half);
-		beg2 = beg;
+		auto split1 = mid;
+		auto split2 = mid;
+		auto middle = mid;
 
-		auto start1 = std::next(beg2, rnks.first);
-		auto end1 = std::next(mid2, rnks.second);
-		if(len1 < (1024l << 0)) {
+		if(Tp.length <= (1024l << 3)) {
 			std::inplace_merge(beg, mid, end);
 			return;
 		}
-		else if((maxthread< (1ul<<depth)) or N < 2 or Tp.num_threads < 2) {
+		if((maxthread >= (1ul << depth)) and Tp.length > (1024l << 3)) {
+			//get the middle and the split points
+			parallel::getSplitAndMiddleForSwap(beg, mid, end, split1, split2, middle);
 			depth++;
-			inplace_par_swap<BiDirIt, (1024ul<<0), Tpolicy>(start1, mid, end1, 0);
-			beg2 = beg;
-			end2 = end;
-			mid2 = mid;
-			mid2 = std::next(beg2, rnks.first);
-			beg2 = beg;
-			mid1 = std::next(beg2, half);
-			auto mid3 = std::next(beg2, half + (len1 - rnks.first));
-			parallel::inplace_merge_helper<BiDirIt, Tpolicy>(beg, mid2, mid1, 0,
-					typename std::iterator_traits<BiDirIt>::iterator_category(),depth,maxthread);
-			parallel::inplace_merge_helper<BiDirIt, Tpolicy>(mid1, mid3, end, 0,
-					typename std::iterator_traits<BiDirIt>::iterator_category(),depth,maxthread);
-					return;
+			parallel::rotate<BiDirIt, 1024, Tpolicy>(split1, mid, split2, std::max(N, 0u)); //call block_swap
 
+			auto fn = std::async(std::launch::async,
+								 parallel::inplace_merge_helper<BiDirIt, Tpolicy>, beg, split1, middle, N - 2,
+								 typename std::iterator_traits<BiDirIt>::iterator_category(), depth, maxthread);
+			parallel::inplace_merge_helper<BiDirIt, Tpolicy>(middle, split2, end, N - 2,
+					typename std::iterator_traits<BiDirIt>::iterator_category(), depth, maxthread);
+			fn.wait();
+			return;
 		}
 		else {
-			depth++;
-			inplace_par_swap<BiDirIt, (1024u<<0), Tpolicy>(start1, mid, end1, 0);
-			beg2 = beg;
-			end2 = end;
-			mid2 = mid;
-			mid2 = std::next(beg2, rnks.first);
-			beg2 = beg;
-			mid1 = std::next(beg2, half);
-			auto mid3 = std::next(beg2, half + (len1 - rnks.first));
-			auto fn = std::async(std::launch::async,
-								 parallel::inplace_merge_helper<BiDirIt, Tpolicy>, beg, mid2, mid1, N - 2,
-								 typename std::iterator_traits<BiDirIt>::iterator_category(),depth,maxthread);
-			parallel::inplace_merge_helper<BiDirIt, Tpolicy>(mid1, mid3, end, N - 2,
-					typename std::iterator_traits<BiDirIt>::iterator_category(),depth,maxthread);
-			fn.wait();
+
+			std::inplace_merge(beg,mid,end);
+			return;
+
 		}
+
 		return;
 	}
 	/**
@@ -6354,37 +6367,43 @@ namespace parallel {
 	 * @param
 	 */
 	template<typename RanIt, typename Tpolicy = LaunchPolicies<RanIt>>
-			void stable_sort_helper(RanIt beg, RanIt en, unsigned int N, std::random_access_iterator_tag ,unsigned int depth=0 , unsigned long  maxthread=std::thread::hardware_concurrency()) {
+			void stable_sort_helper(RanIt beg, RanIt en, unsigned int N, std::random_access_iterator_tag,
+									unsigned int depth = 0, unsigned long maxthread =
+											std::thread::hardware_concurrency()) {
 
 		auto len = std::distance(beg, en);
-		auto mid = std::next(beg, (len >>1));
-		if(len <= (1024l<<0)) {
+		auto mid = std::next(beg, (len >> 1));
+		if(len <= (1024l << 0)) {
 			std::stable_sort(beg, en);
 			return;
 		}
-
-		else if(N < 2 or maxthread<(1ul<<depth)) {
+		if(maxthread >= (1ul << depth) and len > (1024l << 0)) {
 			depth++;
-			stable_sort_helper<RanIt, Tpolicy>(beg, mid, 0,
-					typename std::iterator_traits<RanIt>::iterator_category(),depth,maxthread);
-			stable_sort_helper<RanIt, Tpolicy>(mid, en, 0,
-					typename std::iterator_traits<RanIt>::iterator_category(),depth,maxthread);
-			std::inplace_merge(beg, mid, en);
+			auto fn = std::async(std::launch::async, stable_sort_helper<RanIt, Tpolicy>, beg, mid,
+								 N - 2, typename std::iterator_traits<RanIt>::iterator_category(), depth,
+								 maxthread);
+			stable_sort_helper<RanIt, Tpolicy>(mid, en, N - 2,
+					typename std::iterator_traits<RanIt>::iterator_category(), depth, maxthread);
+
+			fn.wait();
+			parallel::inplace_merge_helper<RanIt, Tpolicy>(beg, mid, en, N,
+					typename std::iterator_traits<RanIt>::iterator_category(), depth - 1,
+					maxthread);
+			//			std::inplace_merge(beg,mid ,en);
 			return;
 		}
 		else {
 			depth++;
-			auto fn = std::async(std::launch::async, stable_sort_helper<RanIt, Tpolicy>, beg, mid,
-								 N - 2, typename std::iterator_traits<RanIt>::iterator_category(),depth,maxthread);
-			stable_sort_helper<RanIt, Tpolicy>(mid, en, N - 2,
-					typename std::iterator_traits<RanIt>::iterator_category(),depth,maxthread);
+			stable_sort_helper<RanIt, Tpolicy>(beg, mid, 0,
+					typename std::iterator_traits<RanIt>::iterator_category(), depth, maxthread);
+			stable_sort_helper<RanIt, Tpolicy>(mid, en, 0,
+					typename std::iterator_traits<RanIt>::iterator_category(), depth, maxthread);
+//			parallel::inplace_merge_helper<RanIt, Tpolicy>(beg, mid, en, 0,
+//					typename std::iterator_traits<RanIt>::iterator_category(), depth, maxthread);
+			std::inplace_merge(beg,mid,en);
 
-			fn.wait();
-			//parallel::inplace_merge<RanIt, Tpolicy>(beg, mid, en, N>>1);
-			std::inplace_merge(beg,mid ,en);
 			return;
 		}
-
 
 	}
 	/**
@@ -6426,7 +6445,8 @@ namespace parallel {
 			void stable_sort(RandomIt beg, RandomIt en, unsigned int N =
 					std::thread::hardware_concurrency()) {
 		stable_sort_helper<RandomIt, Tpolicy>(beg, en, std::max(1u, N),
-				typename std::iterator_traits<RandomIt>::iterator_category(),0,std::max(1ul,(unsigned long)N));
+				typename std::iterator_traits<RandomIt>::iterator_category(), 0,
+				std::max(1ul, (unsigned long) N));
 	}
 	/**
 	 * Actual stable sort call

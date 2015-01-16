@@ -823,7 +823,7 @@ BOOST_AUTO_TEST_SUITE(miscellaneous_tests)
 		std::uniform_int_distribution<unsigned int> dist(0,
 				std::numeric_limits<unsigned int>::max());
 
-		std::vector<unsigned int> v, back(40 * 1000000);
+		std::vector<unsigned int> v, back(100 * 1000000);
 		/*std::vector<unsigned int> v2(20 * 10000);
 		 auto len =v2.size()/2 ;
 		 std::iota(v2.begin(),v2.begin()+len,0);
@@ -835,12 +835,17 @@ BOOST_AUTO_TEST_SUITE(miscellaneous_tests)
 		 catch(std::exception &e){
 		 std::cout<<e.what()<<std::endl;
 		 }*/
-		for(int i = 0; i < 5; ++i) {
+		for(int i = 0; i < 3; ++i) {
 			std::cout << "Generating...\n";
 			std::generate_n(back.begin(), back.size(), [&]() {return dist(rng);});
 
 			time_point<system_clock> t0, t1;
-
+			v = back;
+			std::cout << "parallel::stable_sort: ";
+			t0 = system_clock::now();
+			parallel::stable_sort(v.begin(), v.end());
+			t1 = system_clock::now();
+			std::cout << duration_cast < milliseconds > (t1 - t0).count() << "ms\n";
 			v = back;
 			std::cout << "std::sort: ";
 			t0 = system_clock::now();
@@ -866,12 +871,7 @@ BOOST_AUTO_TEST_SUITE(miscellaneous_tests)
 			parallel::mergesort_mt3(v.begin(), v.end());
 			t1 = system_clock::now();
 			std::cout << duration_cast < milliseconds > (t1 - t0).count() << "ms\n";
-			v = back;
-			std::cout << "parallel::stable_sort: ";
-			t0 = system_clock::now();
-			parallel::stable_sort(v.begin(), v.end());
-			t1 = system_clock::now();
-			std::cout << duration_cast < milliseconds > (t1 - t0).count() << "ms\n";
+
 
 		}
 
