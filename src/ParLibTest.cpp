@@ -872,6 +872,12 @@ BOOST_AUTO_TEST_SUITE(miscellaneous_tests)
 			t1 = system_clock::now();
 			std::cout << duration_cast < milliseconds > (t1 - t0).count() << "ms\n";
 
+			std::cout << "parallel fast unstable stort: ";
+						t0 = system_clock::now();
+						parallel::sort(v.begin(),v.end(),(unsigned int) std::thread::hardware_concurrency());
+						t1 = system_clock::now();
+						std::cout << duration_cast < milliseconds > (t1 - t0).count() << "ms\n";
+
 
 		}
 
