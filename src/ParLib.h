@@ -47,7 +47,8 @@
 #include <random>
 namespace parallel {
 
-	enum class ThreadTypes {
+	enum class ThreadTypes
+	{
 			standard, async
 	};
 
@@ -59,7 +60,8 @@ namespace parallel {
 	 * @summary This class handles certain threading properties of each algorithm.
 	 */
 	template<typename InputIt, unsigned int blksz=2048, unsigned int mxThread=0, ThreadTypes tT=ThreadTypes::standard>
-	class LaunchPolicies {
+	class LaunchPolicies
+	{
 		public:
 			ThreadTypes tTypes;
 			unsigned long length;
@@ -153,7 +155,8 @@ namespace parallel {
 			}
 	};
 	template<typename InputIt>
-	class LaunchPolicies<InputIt, 2048, 0, ThreadTypes::standard> {
+	class LaunchPolicies<InputIt, 2048u, 0, ThreadTypes::standard>
+	{
 		public:
 			ThreadTypes tTypes;
 			unsigned long length;
@@ -239,7 +242,8 @@ namespace parallel {
 	 * handles each block of the foreach function.
 	 */
 	template<typename InputIt, typename UnaryFunction>
-	struct foreach_block {
+	struct foreach_block
+	{
 			/**
 			 *
 			 * @param beg InputIterator to the beginning of the input container
@@ -305,7 +309,8 @@ namespace parallel {
 	 * Helper class for each block of the transform function
 	 */
 	template<typename InputIt, typename OutputIt, typename UnaryOperator>
-	struct transform_block {
+	struct transform_block
+	{
 			/**
 			 *
 			 * @param first1 Input iterator to the beginning of the block.
@@ -323,7 +328,8 @@ namespace parallel {
 	 * Helper class for each block of the transform function
 	 */
 	template<typename InputIt, typename InputIt2, typename OutputIt, typename BinaryOperator>
-	struct transform_block2 {
+	struct transform_block2
+	{
 			/**
 			 *
 			 * @param first1 Input iterator to the beginning of the block.
@@ -467,7 +473,8 @@ namespace parallel {
 	 * Helper for the fill function
 	 */
 	template<typename ForwardIt, typename T>
-	struct fill_block {
+	struct fill_block
+	{
 			/**
 			 *
 			 * @param beg the beginning of the input block
@@ -483,7 +490,8 @@ namespace parallel {
 	 * helper for fill_n function.
 	 */
 	template<typename OutputIt, typename Size, typename T>
-	struct fill_n_block {
+	struct fill_n_block
+	{
 			/**
 			 *
 			 * @param beg The beginning of the input block
@@ -501,7 +509,8 @@ namespace parallel {
 
 	};
 	template<typename OutputIt, typename Size, typename T>
-	struct fill_n_block2 {
+	struct fill_n_block2
+	{
 			/**
 			 *
 			 * @param beg The beginning of the input block
@@ -667,7 +676,8 @@ namespace parallel {
 	 * Helper class for generate function
 	 */
 	template<typename ForwardIt, typename Generator>
-	struct generate_block {
+	struct generate_block
+	{
 			/**
 			 *
 			 * @param beg iterator to the beginning of the block for the input container.
@@ -684,7 +694,8 @@ namespace parallel {
 	 * Helper class for generate_n function
 	 */
 	template<typename OutputIt, typename Size, typename Generator>
-	struct generate_n_block {
+	struct generate_n_block
+	{
 			/**
 			 *
 			 * @param beg beginning iterator to the input container
@@ -809,7 +820,8 @@ namespace parallel {
 
 	}
 	template<typename InputIt, typename T>
-	struct accumulate_block {
+	struct accumulate_block
+	{
 			/**
 			 *
 			 * @param beg Input iterator to the beginning of the input block
@@ -827,7 +839,8 @@ namespace parallel {
 	};
 
 	template<typename InputIt, typename T, typename BinaryOperator>
-	struct accumulate_block2 {
+	struct accumulate_block2
+	{
 			/**
 			 *
 			 * @param beg Input iterator to the beginning of the input block
@@ -946,7 +959,8 @@ namespace parallel {
 	}
 
 	template<typename InputIt, typename T, typename UnaryPred>
-	struct accumulate_if_block {
+	struct accumulate_if_block
+	{
 			/**
 			 *
 			 * @param beg
@@ -966,7 +980,8 @@ namespace parallel {
 	};
 
 	template<typename InputIt, typename T, typename UnaryPred, typename BinaryOperator>
-	struct accumulate_if_block2 {
+	struct accumulate_if_block2
+	{
 			/**
 			 *
 			 * @param beg
@@ -1097,7 +1112,8 @@ namespace parallel {
 	 *
 	 */
 	template<typename InputIt1, typename InputIt2, typename T>
-	struct inner_product_block {
+	struct inner_product_block
+	{
 			/**
 			 *
 			 * @param beg1
@@ -1117,7 +1133,8 @@ namespace parallel {
 	 *
 	 */
 	template<typename InputIt1, typename InputIt2, typename T, typename BinaryOp1, typename BinaryOp2>
-	struct inner_product_block2 {
+	struct inner_product_block2
+	{
 			/**
 			 *
 			 * @param beg1
@@ -1261,7 +1278,8 @@ namespace parallel {
 	}
 
 	template<typename InputIt, typename OutputIt>
-	struct adjacent_difference_block {
+	struct adjacent_difference_block
+	{
 			/**
 			 *
 			 * @param beg1 beginning of the block.
@@ -1370,7 +1388,8 @@ namespace parallel {
 	}
 
 	template<class InputIt, class OutputIt, typename BinaryOp>
-	struct adjacent_difference_block2 {
+	struct adjacent_difference_block2
+	{
 			/**
 			 *
 			 * @param beg beginning of the block.
@@ -1484,7 +1503,8 @@ namespace parallel {
 	}
 	//partial sum
 	template<typename InputIt, typename OutputIt>
-	struct partial_sum_block {
+	struct partial_sum_block
+	{
 			/**
 			 * The goal of this is to do get the sum of the borders first., Then we can do the partial sums for real.On the next try.
 			 * @param beg1 beginning of the block.
@@ -1640,7 +1660,8 @@ namespace parallel {
 	}
 
 	template<typename InputIt, typename OutputIt, typename BinaryOp>
-	struct partial_sum_block2 {
+	struct partial_sum_block2
+	{
 			/**
 			 * This version does not actually update the output container we use this to get the sums at the borders.
 			 * @param beg1 beginning of the block.
@@ -1841,7 +1862,8 @@ namespace parallel {
 	}
 
 	template<typename InputIt, typename T>
-	struct find_block {
+	struct find_block
+	{
 			/**
 			 *
 			 * @param beg
@@ -1868,7 +1890,8 @@ namespace parallel {
 	 *
 	 */
 	template<typename ForwardIt>
-	struct adjacent_find_block {
+	struct adjacent_find_block
+	{
 			/**
 			 *
 			 * @param beg
@@ -2003,7 +2026,8 @@ namespace parallel {
 	}
 
 	template<typename InputIt, typename UnaryPredicate>
-	struct find_if_block {
+	struct find_if_block
+	{
 			/**
 			 *
 			 * @param beg
@@ -2027,7 +2051,8 @@ namespace parallel {
 			}
 	};
 	template<typename InputIt, typename BinaryPredicate>
-	struct adjacent_find2_block {
+	struct adjacent_find2_block
+	{
 			/**
 			 *
 			 * @param beg
@@ -2177,7 +2202,8 @@ namespace parallel {
 	}
 
 	template<typename ForwardIt1, typename ForwardIt2>
-	struct find_first_of_block {
+	struct find_first_of_block
+	{
 			/**
 			 *
 			 * @param beg1
@@ -2283,7 +2309,8 @@ namespace parallel {
 	}
 
 	template<typename ForwardIt1, typename ForwardIt2, typename BinaryOp>
-	struct find_first_of_block2 {
+	struct find_first_of_block2
+	{
 			/**
 			 *
 			 * @param beg1
@@ -2394,7 +2421,8 @@ namespace parallel {
 			return ans->first;
 	}
 	template<typename ForwardIt1, typename ForwardIt2>
-	struct search_block {
+	struct search_block
+	{
 			/**
 			 *
 			 * @param beg1
@@ -2419,7 +2447,8 @@ namespace parallel {
 	};
 
 	template<typename ForwardIt1, typename ForwardIt2, typename BinaryPredicate>
-	struct search_block2 {
+	struct search_block2
+	{
 			/**
 			 *
 			 * @param beg1
@@ -2595,7 +2624,8 @@ namespace parallel {
 	 *
 	 */
 	template<typename ForwardIt, typename Size, typename T>
-	struct search_n_block {
+	struct search_n_block
+	{
 			/**
 			 *
 			 * @param beg
@@ -2618,7 +2648,8 @@ namespace parallel {
 			}
 	};
 	template<typename ForwardIt, typename Size, typename T, typename BinaryPredicate>
-	struct search_n_block2 {
+	struct search_n_block2
+	{
 			/**
 			 *
 			 * @param beg
@@ -2782,7 +2813,8 @@ namespace parallel {
 	}
 
 	template<typename ForwardIt1, typename ForwardIt2>
-	struct find_end_block {
+	struct find_end_block
+	{
 			/**
 			 *
 			 * @param beg1
@@ -2807,7 +2839,8 @@ namespace parallel {
 	};
 
 	template<typename ForwardIt1, typename ForwardIt2, typename BinaryOperator>
-	struct find_end_block2 {
+	struct find_end_block2
+	{
 			/**
 			 *
 			 * @param beg1
@@ -2985,7 +3018,8 @@ namespace parallel {
 	}
 
 	template<typename InputIt1, typename InputIt2>
-	struct mismatch_block {
+	struct mismatch_block
+	{
 			/**
 			 *
 			 * @param beg1
@@ -3012,7 +3046,8 @@ namespace parallel {
 	 *
 	 */
 	template<typename InputIt1, typename InputIt2, typename BinaryOperator>
-	struct mismatch_block2 {
+	struct mismatch_block2
+	{
 			/**
 			 *
 			 * @param beg1
@@ -3168,7 +3203,8 @@ namespace parallel {
 	}
 
 	template<typename InputIt, typename T>
-	struct count_block {
+	struct count_block
+	{
 			/**
 			 *
 			 * @param beg
@@ -3240,7 +3276,8 @@ namespace parallel {
 	 * helper class for count_if
 	 */
 	template<typename InputIt, typename UnaryPredicate>
-	struct count_if_block {
+	struct count_if_block
+	{
 			/**
 			 *
 			 * @param beg Input iterator to the beginning of the input range
@@ -3314,7 +3351,8 @@ namespace parallel {
 	 * all of helper block.
 	 */
 	template<typename InputIt, typename UnaryPredicate>
-	struct all_of_block {
+	struct all_of_block
+	{
 			/**
 			 *
 			 * @param beg Input iterator to the beginning of the input block
@@ -3388,7 +3426,8 @@ namespace parallel {
 	 * helper class for any_of
 	 */
 	template<typename InputIt, typename UnaryPredicate>
-	struct any_of_block {
+	struct any_of_block
+	{
 			/**
 			 *
 			 * @param beg Input iterator to the beginning of the input range
@@ -3460,7 +3499,8 @@ namespace parallel {
 		return ret;
 	}
 	template<typename InputIt, typename UnaryPredicate>
-	struct none_of_block {
+	struct none_of_block
+	{
 			/**
 			 *
 			 * @param beg Input iterator to the beginning of the input range
@@ -3535,7 +3575,8 @@ namespace parallel {
 	 * equal helper class.
 	 */
 	template<typename InputIt1, typename InputIt2>
-	struct equal_block {
+	struct equal_block
+	{
 			/**
 			 * @summary helper for the equal function.
 			 * @param beg1 input iterator to the beginning of the first input block
@@ -3558,7 +3599,8 @@ namespace parallel {
 	 * equal helper class.
 	 */
 	template<typename InputIt1, typename InputIt2>
-	struct equal_block4 {
+	struct equal_block4
+	{
 			/**
 			 *
 			 * @param beg1 input iterator to the beginning of the input block
@@ -3663,7 +3705,8 @@ namespace parallel {
 	}
 
 	template<typename InputIt1, typename InputIt2, typename BinaryPredicate>
-	struct equal_block2 {
+	struct equal_block2
+	{
 			/**
 			 * @summary used to perform comparisons in each block.
 			 * @param beg1 Input iterator to the beginning of the first input range
@@ -3769,7 +3812,8 @@ namespace parallel {
 	 * helper class for block
 	 */
 	template<typename InputIt1, typename InputIt2, typename BinaryPredicate>
-	struct equal_block3 {
+	struct equal_block3
+	{
 			/**
 			 *
 			 * @param beg1	Input iterator to the beginning of the first input range
@@ -3938,7 +3982,8 @@ namespace parallel {
 	}
 
 	template<typename ForwardIt>
-	struct max_element_block {
+	struct max_element_block
+	{
 			/**
 			 *
 			 * @param beg iterator to the beginning of the block
@@ -4014,7 +4059,8 @@ namespace parallel {
 	 * max_element block helper class.
 	 */
 	template<typename ForwardIt, typename Comp>
-	struct max_element_block2 {
+	struct max_element_block2
+	{
 			/**
 			 *
 			 * @param beg iterator to the beginning of the input block
@@ -4092,7 +4138,8 @@ namespace parallel {
 	 * min_element helper class.
 	 */
 	template<typename ForwardIt>
-	struct min_element_block {
+	struct min_element_block
+	{
 			/**
 			 *
 			 * @param beg Forward iterator to the beginning of input block
@@ -4168,7 +4215,8 @@ namespace parallel {
 	 * min element helper class.
 	 */
 	template<typename ForwardIt, typename Comp>
-	struct min_element_block2 {
+	struct min_element_block2
+	{
 			/**
 			 *
 			 * @param beg iterator to the beginning of the block
@@ -4248,7 +4296,8 @@ namespace parallel {
 	 * Helper function for minmax_element.
 	 */
 	template<typename ForwardIt>
-	struct minmax_element_block {
+	struct minmax_element_block
+	{
 			/**
 			 *
 			 * @param beg the beginning of the block.
@@ -4341,7 +4390,8 @@ namespace parallel {
 	 * Helper methods for computing the minmax_element block by block
 	 */
 	template<typename ForwardIt, typename Comp>
-	struct minmax_element_block2 {
+	struct minmax_element_block2
+	{
 			/**
 			 *
 			 * @param beg input iterator to the start of the range to consider in the input container.
@@ -4436,7 +4486,8 @@ namespace parallel {
 	 * Helper functions for doing the copy_if block by block.
 	 */
 	template<typename InputIt, typename OutputIt, typename UnaryPred>
-	struct copy_if_block {
+	struct copy_if_block
+	{
 			/**
 			 *
 			 * @param beg1	input iterator to the beginning of the range of the input container
@@ -4459,7 +4510,8 @@ namespace parallel {
 	};
 
 	template<typename InputIt, typename OutputIt>
-	struct copy_if_block2 {
+	struct copy_if_block2
+	{
 
 			/**
 			 * @summary This version copies in all the values of the iterators that statisfy the required predicate into the Output Iterator.
@@ -4484,7 +4536,8 @@ namespace parallel {
 	 * Helper functions for doing the copy block .
 	 */
 	template<typename InputIt, typename OutputIt>
-	struct copy_block {
+	struct copy_block
+	{
 			/**
 			 *
 			 * @param beg1	input iterator to the beginning of the range of the input container
@@ -4569,7 +4622,8 @@ namespace parallel {
 	 * Helper functions for doing the reverse copy block .
 	 */
 	template<typename BidirIt, typename OutputIt>
-	struct reverse_copy_block {
+	struct reverse_copy_block
+	{
 			/**
 			 *
 			 * @param beg1	input iterator to the beginning of the range of the input container
@@ -4656,7 +4710,8 @@ namespace parallel {
 	 * Helper functions for doing the copy block .
 	 */
 	template<typename InputIt, typename Size, typename OutputIt>
-	struct copy_n_block {
+	struct copy_n_block
+	{
 			/**
 			 *
 			 * @param beg1	input iterator to the beginning of the range of the input container
@@ -4844,7 +4899,8 @@ namespace parallel {
 	 * handles each block of the replace function.
 	 */
 	template<typename ForwardIt, typename T>
-	struct replace_block {
+	struct replace_block
+	{
 			/**
 			 *
 			 * @param beg ForwardIterator to the beginning of the input container
@@ -4914,7 +4970,8 @@ namespace parallel {
 	 * handles each block of the replace_if function.
 	 */
 	template<typename ForwardIt, typename UnaryPred, typename T>
-	struct replace_if_block {
+	struct replace_if_block
+	{
 			/**
 			 *
 			 * @param beg ForwardIterator to the beginning of the input container
@@ -4985,7 +5042,8 @@ namespace parallel {
 	 * handles each block of the replace_copy function.
 	 */
 	template<typename InputIt, typename OutputIt, typename T>
-	struct replace_copy_block {
+	struct replace_copy_block
+	{
 			/**
 			 *
 			 * @param beg InputIterator to the beginning of the input container
@@ -5067,7 +5125,8 @@ namespace parallel {
 	 * handles each block of the replace_copy function.
 	 */
 	template<typename InputIt, typename OutputIt, typename UnaryPred, typename T>
-	struct replace_copy_if_block {
+	struct replace_copy_if_block
+	{
 			/**
 			 *
 			 * @param beg InputIterator to the beginning of the input container
@@ -5149,7 +5208,8 @@ namespace parallel {
 	 * handles each block of the is_sorted function.
 	 */
 	template<typename ForwardIt>
-	struct is_sorted_block {
+	struct is_sorted_block
+	{
 			/**
 			 *
 			 * @param beg ForwardIterator to the beginning of the input container
@@ -5171,7 +5231,8 @@ namespace parallel {
 	 *  Helper for the is_sorted function with a binary predicate.
 	 */
 	template<typename ForwardIt, typename BinaryPred>
-	struct is_sorted_block2 {
+	struct is_sorted_block2
+	{
 			/**
 			 *
 			 * @param beg ForwardIterator to the beginning of the input container
@@ -5301,7 +5362,8 @@ namespace parallel {
 	 * handles each block of the is_sorted function.
 	 */
 	template<typename ForwardIt>
-	struct is_sorted_until_block {
+	struct is_sorted_until_block
+	{
 			/**
 			 *
 			 * @param beg ForwardIterator to the beginning of the input container
@@ -5327,7 +5389,8 @@ namespace parallel {
 	 *  Helper for the is_sorted function with a binary predicate.
 	 */
 	template<typename ForwardIt, typename BinaryPred>
-	struct is_sorted_until_block2 {
+	struct is_sorted_until_block2
+	{
 			/**
 			 *
 			 * @param beg ForwardIterator to the beginning of the input container
@@ -5462,7 +5525,8 @@ namespace parallel {
 	 * handles each block of the reverse function.
 	 */
 	template<typename BidirIt>
-	struct reverse_block {
+	struct reverse_block
+	{
 			/**
 			 *
 			 * @param beg Bidirectional Iterator to the begining of the input container
@@ -5580,7 +5644,8 @@ namespace parallel {
 	 * handles each block of the swap_ranges function.
 	 */
 	template<typename ForwardIt1, typename ForwardIt2>
-	struct swap_ranges_block {
+	struct swap_ranges_block
+	{
 			/**
 			 *
 			 * @param beg1 Forward Iterator to the beginning of the first input container
@@ -5639,7 +5704,8 @@ namespace parallel {
 	 * Insertion sort helper
 	 */
 	template<typename BiIt>
-	struct insert_sort_block {
+	struct insert_sort_block
+	{
 			/**
 			 *
 			 * @param beg iterator to the beginning of the input container
@@ -5661,7 +5727,8 @@ namespace parallel {
 	 * Helper for insertion sort with binary predicate for comparison
 	 */
 	template<typename BiIt, typename BinaryPred>
-	struct insert_sort_block2 {
+	struct insert_sort_block2
+	{
 			/**
 			 *
 			 * @param beg iterator to the beginning of the input container
@@ -6455,8 +6522,9 @@ namespace parallel {
 		//auto end2=end;
 		auto nth_pos=std::distance(beg, nth);
 		Tp.max_hardware_threads=N;
-		std::uniform_int_distribution<typename std::iterator_traits<RanIt>::difference_type> dist(0, Tp.length - 1);
 		Tp.SetLaunchPolicies(beg, end, N);
+		std::uniform_int_distribution<typename std::iterator_traits<RanIt>::difference_type> dist(0, Tp.length - 1);
+
 		if(!Tp.length)
 			return;
 
@@ -6466,12 +6534,12 @@ namespace parallel {
 
 		}
 		//select three different pivots
-		std::vector<typename std::iterator_traits<RanIt>::difference_type > pivotsIndx{dist(rng),dist(rng),dist(rng)};
+		std::vector<typename std::iterator_traits<RanIt>::difference_type> pivotsIndx{dist(rng),dist(rng),dist(rng)};
 		std::vector<typename std::iterator_traits<RanIt>::value_type> pivots;
 		pivots.emplace_back(*(beg + pivotsIndx[0]));
 		pivots.emplace_back(*(beg + pivotsIndx[1]));
 		pivots.emplace_back(*(beg + pivotsIndx[2]));
-		std::sort(pivots.begin(),pivots.end()); //median
+		std::sort(pivots.begin(), pivots.end()); //median
 		//get the unary predicate less than for partition
 		auto UnaryPred=std::bind(std::less<typename std::iterator_traits<RanIt>::value_type>(), std::placeholders::_1,
 				pivots[1]);
@@ -6508,8 +6576,10 @@ namespace parallel {
 		auto end2=end;
 		auto nth_pos=std::distance(beg, nth);
 		Tp.max_hardware_threads=N;
-		std::uniform_int_distribution<typename std::iterator_traits<RanIt>::difference_type()> dist(0, Tp.length - 1);
 		Tp.SetLaunchPolicies(beg, end, N);
+		std::uniform_int_distribution < typename std::iterator_traits<RanIt>::difference_type()
+		        		> dist(0, Tp.length - 1);
+
 		if(!Tp.length)
 			return;
 
@@ -6520,7 +6590,7 @@ namespace parallel {
 		}
 		//select three different pivots
 		std::vector<typename std::iterator_traits<RanIt>::difference_type> pivotsIndx{dist(rng),dist(rng),dist(rng)};
-		std::vector< typename std::iterator_traits<RanIt>::value_type> pivots;
+		std::vector<typename std::iterator_traits<RanIt>::value_type> pivots;
 		pivots.emplace_back(*(beg + pivotsIndx[0]));
 		pivots.emplace_back(*(beg + pivotsIndx[1]));
 		pivots.emplace_back(*(beg + pivotsIndx[2]));
