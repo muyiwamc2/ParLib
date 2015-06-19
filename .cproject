@@ -45,6 +45,7 @@
 								<option id="gnu.cpp.link.option.flags.161522339" name="Linker flags" superClass="gnu.cpp.link.option.flags" value="-pthread  -Wl,--no-as-needed" valueType="string"/>
 								<option id="gnu.cpp.link.option.libs.2091110586" name="Libraries (-l)" superClass="gnu.cpp.link.option.libs" valueType="libs">
 									<listOptionValue builtIn="false" value="pthread"/>
+									<listOptionValue builtIn="false" value="boost_unit_test_framework"/>
 								</option>
 								<option id="gnu.cpp.link.option.debugging.prof.1456604027" name="Generate prof information (-p)" superClass="gnu.cpp.link.option.debugging.prof" value="true" valueType="boolean"/>
 								<option id="gnu.cpp.link.option.debugging.gprof.1923241606" name="Generate gprof information (-pg)" superClass="gnu.cpp.link.option.debugging.gprof" value="true" valueType="boolean"/>
