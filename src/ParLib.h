@@ -345,24 +345,41 @@ UnaryFunction for_each(InputIt beg, InputIt end, UnaryFunction f) {
  * @param f Unary function to be executed for each element.
  * @return
  */
-template<typename RangeType, typename UnaryFunction,
-		typename Tpolicy = LaunchPolicies<RangeType> >
+template<typename RangeType, typename UnaryFunction >
 void parallel_for(RangeType beg, RangeType end, UnaryFunction f) {
-	Tpolicy Tp;
-	Tp.SetLaunchPolicies(beg, end);
-	if (!Tp.length)
-		return f;
-	if (Tp.num_threads < 2)
+	unsigned long length= static_cast<unsigned long>(end -beg);
+	unsigned long block_size;
+	unsigned long num_threads;
+	ThreadTypes tTypes = ThreadTypes::standard;
+
+	{
+
+				unsigned long hardware_threads = std::thread::hardware_concurrency();
+				unsigned long max_hardware_threads =0;
+				if (max_hardware_threads and max_hardware_threads > 0)
+					hardware_threads = std::min(max_hardware_threads, hardware_threads);
+				unsigned long min_per_thread = 2048;
+				unsigned long max_threads = (length + min_per_thread) / min_per_thread;
+				;
+				num_threads = std::min(hardware_threads != 0 ? hardware_threads : 2,
+						max_threads);
+				block_size = length / num_threads;
+
+	}
+
+	if (length)
+		return ;
+	if (num_threads < 2)
 		return for_block<RangeType,UnaryFunction>(beg, end, f);
-	std::vector<std::future<void>> futures(Tp.num_threads - 1);
-	std::vector < std::thread > threads(Tp.num_threads - 1);
+	std::vector<std::future<void>> futures(num_threads - 1);
+	std::vector < std::thread > threads(num_threads - 1);
 	RangeType block_start = beg;
 	RangeType block_end = beg;
 
-	if (Tp.tTypes == ThreadTypes::standard) {
-		for (unsigned int i = 0; i < (Tp.num_threads - 1); i++) {
+	if (tTypes == ThreadTypes::standard) {
+		for (unsigned int i = 0; i < (num_threads - 1); i++) {
 
-			std::advance(block_end, Tp.block_size);
+			std::advance(block_end, block_size);
 			threads[i] =
 					std::thread(for_block<RangeType, UnaryFunction>(),
 							block_start, block_end, f);
@@ -374,10 +391,10 @@ void parallel_for(RangeType beg, RangeType end, UnaryFunction f) {
 				std::mem_fn(&std::thread::join));
 	}
 
-	if (Tp.tTypes == ThreadTypes::async) {
-		for (unsigned int i = 0; i < (Tp.num_threads - 1); i++) {
+	if (tTypes == ThreadTypes::async) {
+		for (unsigned int i = 0; i < (num_threads - 1); i++) {
 
-			std::advance(block_end, Tp.block_size);
+			std::advance(block_end, block_size);
 			futures[i] =
 					std::async(std::launch::async,
 							for_block<RangeType, UnaryFunction>(),
