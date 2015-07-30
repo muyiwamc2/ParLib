@@ -260,6 +260,25 @@ struct foreach_block {
 		std::for_each(beg, end, f);
 	}
 };
+
+/**
+ * handles each block of the foreach function.
+ */
+template<typename RangeType, typename UnaryFunction>
+struct for_block {
+	/**
+	 *
+	 * @param beg RangeType the beginning of the range
+	 * @param end RangeType to the end of the range
+	 * @param f Unary Function to be executed
+	 * @param  used to make sure we at least have input iterators
+	 */
+	void operator ()( RangeType beg, RangeType end, UnaryFunction f) {
+		for(RangeType var =beg; var<end; var++ ){
+			f(var);
+		}
+	}
+};
 /**
  *
  * @param beg Iterator to the beginning of the input container
@@ -318,6 +337,66 @@ UnaryFunction for_each(InputIt beg, InputIt end, UnaryFunction f) {
 
 	return f;
 }
+
+/**
+ *
+ * @param beg RangeType to the beginning
+ * @param end RangeType to the end
+ * @param f Unary function to be executed for each element.
+ * @return
+ */
+template<typename RangeType, typename UnaryFunction,
+		typename Tpolicy = LaunchPolicies<RangeType> >
+void parallel_for(RangeType beg, RangeType end, UnaryFunction f) {
+	Tpolicy Tp;
+	Tp.SetLaunchPolicies(beg, end);
+	if (!Tp.length)
+		return f;
+	if (Tp.num_threads < 2)
+		return for_block<RangeType,UnaryFunction>(beg, end, f);
+	std::vector<std::future<void>> futures(Tp.num_threads - 1);
+	std::vector < std::thread > threads(Tp.num_threads - 1);
+	RangeType block_start = beg;
+	RangeType block_end = beg;
+
+	if (Tp.tTypes == ThreadTypes::standard) {
+		for (unsigned int i = 0; i < (Tp.num_threads - 1); i++) {
+
+			std::advance(block_end, Tp.block_size);
+			threads[i] =
+					std::thread(for_block<RangeType, UnaryFunction>(),
+							block_start, block_end, f);
+
+			block_start = block_end;
+		}
+		for_block<RangeType, UnaryFunction>()(block_start, end, f);
+		std::for_each(threads.begin(), threads.end(),
+				std::mem_fn(&std::thread::join));
+	}
+
+	if (Tp.tTypes == ThreadTypes::async) {
+		for (unsigned int i = 0; i < (Tp.num_threads - 1); i++) {
+
+			std::advance(block_end, Tp.block_size);
+			futures[i] =
+					std::async(std::launch::async,
+							for_block<RangeType, UnaryFunction>(),
+							block_start, block_end, f);
+
+			block_start = block_end;
+		}
+		for_block<RangeType, UnaryFunction>()(block_start, end, f);
+		std::for_each(futures.begin(), futures.end(),
+				std::mem_fn(&std::future<void>::wait));
+	}
+
+
+}
+
+
+
+
+
 /**
  * Helper class for each block of the transform function
  */
@@ -7230,7 +7309,7 @@ BiDirIt partition_helper(BiDirIt beg, BiDirIt end, UnaryPredicate p,
  *  actual partition algorithm
  * @param beg Iterator to the beginning of the range
  * @param end Iterator to the end of the range
- * @param p Unary Predicate that represents the partion @see STL
+ * @param p Unary Predicate that represents the partition @see STL
  * @param N Numbef of threads
  * @param
  * @return Iterator to the beginning of the block where the predicate is false
